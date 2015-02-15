@@ -1,7 +1,6 @@
 package main
 
-import (
-)
+import ()
 
 // docrawl begins crawling the site at "url"
 func docrawl(url string) []*Page {
