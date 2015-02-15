@@ -1,2 +1,2 @@
 syntax: glob
-.vendor/bin
+bin
