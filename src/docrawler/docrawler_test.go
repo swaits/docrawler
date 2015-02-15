@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -43,8 +42,8 @@ func TestMain(m *testing.M) {
 func TestServerRunning(t *testing.T) {
 	resp, err := http.Get(baseURL)
 	if resp.StatusCode != 200 || err != nil {
-		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
-		t.Error(err)
+		t.Logf("got %v, err = %v\n", resp.StatusCode, err)
+		t.Fatal(err)
 	}
 }
 
@@ -52,21 +51,85 @@ func TestServerRunning(t *testing.T) {
 func TestBadRequest(t *testing.T) {
 	resp, err := http.Get(baseURL + "doesnotexist.html")
 	if resp.StatusCode != 404 || err != nil {
-		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
-		t.Error("request for non existent file didn't fail properly")
+		t.Logf("got %v, err = %v\n", resp.StatusCode, err)
+		t.Fatal("request for non existent file didn't fail properly")
 	}
 }
 
 // TestSimpleFetch makes sure we can fetch a file and we get exactly what we expect
 func TestSimpleFetch(t *testing.T) {
-	body, err := fetch(baseURL + "fetch_test.html")
+	page, err := NewPage(nil, baseURL+"fetch_test.html")
 	if err != nil {
-		t.Error(err)
+		t.Error("problem creating New Page struct")
+	}
+	body, err := fetchPage(page)
+	if err != nil {
+		t.Fatal(err)
 	}
 	desired := "<html><head></head><body></body></html>\n"
 	if body != desired {
-		fmt.Printf("   Got: '%v'\n", body)
-		fmt.Printf("Wanted: '%v'\n", desired)
+		t.Logf("   Got: '%v'\n", body)
+		t.Logf("Wanted: '%v'\n", desired)
 		t.Error("fetch succeeded, but content mismatched")
+	}
+}
+
+// TestSimpleMap figures out the site map for the site in baseURL
+func TestSimpleMap(t *testing.T) {
+	pages := docrawl(baseURL)
+	t.Log("pages = ", pages)
+	if len(pages) != 4 {
+		t.Logf("got %v, wanted %v\n", len(pages), 1)
+		t.Fatal("got wrong number of pages")
+	}
+	if pages[0].URL.String() != baseURL {
+		t.Error("page URL is invalid")
+	}
+	if len(pages[0].Children) != 3 {
+		t.Logf("got %v, wanted %v\n", len(pages[0].Children), 1)
+		t.Fatal("got wrong number of links")
+	}
+	if pages[0].Children[0].URL.String() != baseURL+"about.html" {
+		t.Logf("   Got: %q\n", pages[0].Children[0].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"about.html")
+		t.Error("link name is incorrect")
+	}
+	if pages[0].Children[1].URL.String() != baseURL+"assets/image.png" {
+		t.Logf("   Got: %q\n", pages[0].Children[1].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"assets/image.png")
+		t.Error("link name is incorrect")
+	}
+	if pages[0].Children[2].URL.String() != baseURL+"scripts/blah.js" {
+		t.Logf("   Got: %q\n", pages[0].Children[2].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"scripts/blah.js")
+		t.Error("link name is incorrect")
+	}
+}
+
+// TestHeaderFetching tests fetchFiletype() to see if we are getting expected results
+func TestHeaderFetching(t *testing.T) {
+	basepage, err := NewPage(nil, baseURL)
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(basepage); err != nil || basepage.MediaType != "text/html" {
+		t.Error("problem fetching filetype")
+	}
+
+	page, err := NewPage(basepage, "about.html")
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(page); err != nil || page.MediaType != "text/html" {
+		t.Error("problem fetching filetype")
+	}
+
+	page, err = NewPage(basepage, "assets/image.png")
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(page); err != nil || page.MediaType != "text/plain" {
+		t.Logf("got %q, wanted %q", page.MediaType, "text/plain")
+		t.Error("problem fetching filetype")
 	}
 }

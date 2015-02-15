@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrInvalidURL = errors.New("this URL can't be parsed successfully")
+	errInvalidURL = errors.New("this URL can't be parsed successfully")
 )
 
 // cleanURL takes a URL and normalizes it by downcasing the host part
@@ -21,7 +21,7 @@ func checkURL(u *url.URL) error {
 	// check for non-empty Host and Scheme
 	if len(u.Host) == 0 || len(u.Scheme) == 0 {
 		// something about this URL doesn't meet our spec
-		return ErrInvalidURL
+		return errInvalidURL
 	}
 	return nil // success!
 }

@@ -12,23 +12,27 @@ func TestSimpleParse(t *testing.T) {
 	</head>
 	<body>
 		<img src="/assets/image.png"/>
-		<a href="/about.html">
+		<a href="/about.html">fooey!</a>
+		<script href="scripts/blah.js"/>
 	</body>
 </html>`
-	title, matches, err := parse(doc)
+	title, matches, err := parseLinks(doc)
 	if err != nil {
 		t.Error(err)
 	}
 	if title != "Test Page" {
 		t.Error("got wrong title")
 	}
-	if len(matches) != 2 {
+	if len(matches) != 3 {
 		t.Error("invalid number of matches in parse")
 	}
 	if matches[0] != "/about.html" {
 		t.Error("match text is invalid")
 	}
 	if matches[1] != "/assets/image.png" {
+		t.Error("match text is invalid")
+	}
+	if matches[2] != "scripts/blah.js" {
 		t.Error("match text is invalid")
 	}
 }
