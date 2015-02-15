@@ -44,7 +44,7 @@ func TestServerRunning(t *testing.T) {
 	resp, err := http.Get(baseURL)
 	if resp.StatusCode != 200 || err != nil {
 		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
@@ -53,7 +53,7 @@ func TestBadRequest(t *testing.T) {
 	resp, err := http.Get(baseURL + "doesnotexist.html")
 	if resp.StatusCode != 404 || err != nil {
 		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
-		t.Error("request for non existent file didn't fail properly")
+		t.Fatal("request for non existent file didn't fail properly")
 	}
 }
 
@@ -61,7 +61,7 @@ func TestBadRequest(t *testing.T) {
 func TestSimpleFetch(t *testing.T) {
 	body, err := fetch(baseURL + "fetch_test.html")
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	desired := "<html><head></head><body></body></html>\n"
 	if body != desired {
@@ -86,12 +86,35 @@ func TestSimpleParse(t *testing.T) {
 		t.Error(err)
 	}
 	if len(matches) != 2 {
-		t.Error("invalid number of matches in parse")
+		t.Fatal("invalid number of matches in parse")
 	}
 	if matches[0] != "/about.html" {
 		t.Error("match text is invalid")
 	}
 	if matches[1] != "/assets/image.png" {
 		t.Error("match text is invalid")
+	}
+}
+
+// TestSimpleMap figures out the site map for the site in baseURL
+func TestSimpleMap(t *testing.T) {
+	pages := docrawl(baseURL)
+	if len(pages) != 1 {
+		t.Fatal("got wrong number of pages")
+	}
+	if pages[0].URL != baseURL {
+		t.Error("page URL is invalid")
+	}
+	if len(pages[0].Assets) != 1 {
+		t.Fatal("got wrong number of assets")
+	}
+	if pages[0].Assets[0] != baseURL+"/assets/image.png" {
+		t.Error("asset name is incorrect")
+	}
+	if len(pages[0].Links) != 1 {
+		t.Fatal("got wrong number of links")
+	}
+	if pages[0].Links[0] != baseURL+"/about.html" {
+		t.Error("link name is incorrect")
 	}
 }
