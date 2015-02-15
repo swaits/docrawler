@@ -58,7 +58,11 @@ func TestBadRequest(t *testing.T) {
 
 // TestSimpleFetch makes sure we can fetch a file and we get exactly what we expect
 func TestSimpleFetch(t *testing.T) {
-	body, err := fetch(baseURL + "fetch_test.html")
+	page, err := NewPage(nil, baseURL+"fetch_test.html")
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	body, err := fetchPage(page)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,16 +101,30 @@ func TestSimpleMap(t *testing.T) {
 	}
 }
 
-// TestHeaderFetching tests fetch_filetype() to see if we are getting expected results
+// TestHeaderFetching tests fetchFiletype() to see if we are getting expected results
 func TestHeaderFetching(t *testing.T) {
-	if ft, err := fetch_filetype(baseURL); err != nil || ft != "text/html" {
+	basepage, err := NewPage(nil, baseURL)
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(basepage); err != nil || basepage.MediaType != "text/html" {
 		t.Error("problem fetching filetype")
 	}
-	if ft, err := fetch_filetype(baseURL + "about.html"); err != nil || ft != "text/html" {
+
+	page, err := NewPage(basepage, "about.html")
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(page); err != nil || page.MediaType != "text/html" {
 		t.Error("problem fetching filetype")
 	}
-	if ft, err := fetch_filetype(baseURL + "assets/image.png"); err != nil || ft != "text/plain" {
-		t.Logf("got %q, wanted %q", ft, "text/plain")
+
+	page, err = NewPage(basepage, "assets/image.png")
+	if err != nil {
+		t.Error("problem creating New Page struct")
+	}
+	if err := fetchFiletype(page); err != nil || page.MediaType != "text/plain" {
+		t.Logf("got %q, wanted %q", page.MediaType, "text/plain")
 		t.Error("problem fetching filetype")
 	}
 }
