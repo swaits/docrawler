@@ -36,9 +36,9 @@ func TestBadURL(t *testing.T) {
 
 // some tests for the base url resolution (absolute vs. relative links)
 func doResolveTest(t *testing.T, wanted, referrer, current string) {
-	u, err := getURL(referrer, current)
+	u, err := resolveURL(referrer, current)
 	if err != nil {
-		t.Error("getURL failed (probably parsing)")
+		t.Error("resolveURL failed (probably parsing)")
 	}
 	if u.String() != wanted {
 		fmt.Printf("   Got: %q\n", u)

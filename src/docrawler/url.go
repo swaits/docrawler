@@ -26,9 +26,9 @@ func checkURL(u *url.URL) error {
 	return nil // success!
 }
 
-// getURL takes a URL and its referring URL and tries to parse it into an acceptable complete URL
+// resolveURL takes a URL and its referring URL and tries to parse it into an acceptable complete URL
 // returns the final URL and any error
-func getURL(referringURL string, currentURL string) (*url.URL, error) {
+func resolveURL(referringURL string, currentURL string) (*url.URL, error) {
 	// begin by parsing both URLs
 	uCurrent, err := url.Parse(currentURL)
 	if err != nil {
