@@ -57,8 +57,8 @@ func TestBadRequest(t *testing.T) {
 	}
 }
 
-// TestFetch makes sure we can fetch a file and we get exactly what we expect
-func TestFetch(t *testing.T) {
+// TestSimpleFetch makes sure we can fetch a file and we get exactly what we expect
+func TestSimpleFetch(t *testing.T) {
 	body, err := fetch(baseURL + "fetch_test.html")
 	if err != nil {
 		t.Error(err)
@@ -71,8 +71,8 @@ func TestFetch(t *testing.T) {
 	}
 }
 
-// TestParse verifies that we can extract URLs (etc.) from a known document
-func TestParse(t *testing.T) {
+// TestSimpleParse verifies that we can extract URLs (etc.) from a known document
+func TestSimpleParse(t *testing.T) {
 	doc := `<html>
 	<head>
 	</head>
@@ -88,10 +88,10 @@ func TestParse(t *testing.T) {
 	if len(matches) != 2 {
 		t.Error("invalid number of matches in parse")
 	}
-	if matches[0] != "/assets/image.png" {
+	if matches[0] != "/about.html" {
 		t.Error("match text is invalid")
 	}
-	if matches[1] != "/about.html" {
+	if matches[1] != "/assets/image.png" {
 		t.Error("match text is invalid")
 	}
 }

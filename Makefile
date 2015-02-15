@@ -31,11 +31,11 @@ vet:
 	go vet ./src/...
 
 test:
-	go test ./src/... | ./testfilter.sh
+	go test ./src/... | ./util/testfilter.sh
 
 autotest:
 	fswatch -or ./src | \
-	xargs -n1 -I{} ${SHELL} -c 'echo ; date ; echo ----------------------------; go test ./src/... | ./testfilter.sh'
+	xargs -n1 -I{} ${SHELL} -c 'echo ; date ; echo ----------------------------; go test ./src/... | ./util/testfilter.sh'
 
 run: build
 	./bin/${APPNAME}
