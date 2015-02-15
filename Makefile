@@ -3,14 +3,15 @@
 # derived from: http://zduck.com/2014/go-project-structure-and-dependencies/
 
 # build targets (which aren't files)
-.PHONY: build fmt lint vet test autotest cover run clean env vendor
+.PHONY: build fmt lint vet test autotest cover doc run clean env vendor
 
 # configuration
 APPNAME := docrawler
 VENDOR := .vendor
 PACKAGES :=                     \
-	golang.org/x/tools/cmd/vet    \
 	golang.org/x/tools/cmd/cover  \
+	golang.org/x/tools/cmd/godoc  \
+	golang.org/x/tools/cmd/vet    \
 	github.com/golang/lint/golint
 
 # override GOPATH to be our vendor directory
@@ -26,7 +27,7 @@ fmt:
 	go fmt ./src/...
 
 lint:
-	# TODO golint is not working from inside the make environment for some reason
+	# TODO golint is not accepting the "./src/..." for some reason (from within make)
 	golint ./src/${APPNAME}/*.go
 
 vet:
@@ -42,6 +43,9 @@ autotest:
 cover:
 	go test -coverprofile cover.out ./src/...  && go tool cover -html cover.out
 
+doc:
+	godoc -http=:6060 -index
+
 run: build
 	./bin/${APPNAME}
 
@@ -56,7 +60,7 @@ env:
 # * fetches all packages in ${PACKAGES} (GOPATH hardcoded to vendor directory only)
 # * removes source control dirs so packages are vendorable (commitable)
 vendor:
-	rm -dRf ./${VENDOR}/src                          && \
+	rm -dRf ./${VENDOR}                              && \
 	GOPATH=${PWD}/${VENDOR} go get -u ${PACKAGES}    && \
 	rm -rf `find ./${VENDOR}/src -type d -name .git` && \
 	rm -rf `find ./${VENDOR}/src -type d -name .hg`  && \
