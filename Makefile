@@ -33,7 +33,7 @@ vet:
 test:
 	go test ./src/...
 
-autotest:
+autotest: test
 	fswatch -or ./src | xargs -n1 -I{} go test ./src/...
 
 run: build
