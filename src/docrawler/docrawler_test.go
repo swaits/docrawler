@@ -4,14 +4,20 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"testing"
+)
+
+const (
+	port    = 8765
+	baseURL = "http://localhost:8765/"
 )
 
 func TestMain(m *testing.M) {
 	// start our simple web server
-	l, err := net.Listen("tcp", ":8765")
+	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		panic("unable to listen on port 8765") // TODO remove panic?
+		panic("unable to open port for http server") // TODO remove panic?
 	}
 	http.Handle("/", http.FileServer(http.Dir("./testsite")))
 	go func() {
@@ -32,7 +38,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerRunning(t *testing.T) {
-	resp, err := http.Get("http://localhost:8765/")
+	resp, err := http.Get(baseURL)
 	if resp.StatusCode != 200 || err != nil {
 		t.Error(err)
 	}
