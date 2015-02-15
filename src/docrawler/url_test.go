@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 )
@@ -14,8 +13,8 @@ func TestURLCleaner(t *testing.T) {
 	}
 	cleanURL(u)
 	if u.Host != "somehost.com:8765" {
-		fmt.Printf("   Got: %q\n", u.Host)
-		fmt.Printf("Wanted: %q\n", "somehost.com:8765")
+		t.Logf("   Got: %q\n", u.Host)
+		t.Logf("Wanted: %q\n", "somehost.com:8765")
 		t.Error("host extraction failed")
 	}
 	if u.String() != "http://swaits:pass@somehost.com:8765/blah/blah.html?x=y#foo" {
@@ -41,8 +40,8 @@ func doResolveTest(t *testing.T, wanted, referrer, current string) {
 		t.Error("resolveURL failed (probably parsing)")
 	}
 	if u.String() != wanted {
-		fmt.Printf("   Got: %q\n", u)
-		fmt.Printf("Wanted: %q\n", wanted)
+		t.Logf("   Got: %q\n", u)
+		t.Logf("Wanted: %q\n", wanted)
 		t.Error("url resolution with base URL failed")
 	}
 }
@@ -51,4 +50,5 @@ func TestURLResolution(t *testing.T) {
 	doResolveTest(t, "http://base.com/some/crazy/path/test.png", "http://BaSe.CoM/some/crazy/path/index.html?parm=x&blah=foo", "test.png")
 	doResolveTest(t, "http://S:D@base.com:1/test.png", "http://S:D@BaSe.CoM:1/some/crazy/path/index.html?parm=x&blah=foo", "/test.png")
 	doResolveTest(t, "http://another.com/blah.html", "http://S:D@BaSe.CoM:1/some/crazy/path/index.html?parm=x&blah=foo", "http://aNOThER.CoM/blah.html")
+	doResolveTest(t, "http://empty.com/blah.html", "", "http://empty.com/blah.html")
 }

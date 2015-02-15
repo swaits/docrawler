@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net"
 	"net/http"
 	"os"
@@ -43,7 +42,7 @@ func TestMain(m *testing.M) {
 func TestServerRunning(t *testing.T) {
 	resp, err := http.Get(baseURL)
 	if resp.StatusCode != 200 || err != nil {
-		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
+		t.Logf("got %v, err = %v\n", resp.StatusCode, err)
 		t.Fatal(err)
 	}
 }
@@ -52,7 +51,7 @@ func TestServerRunning(t *testing.T) {
 func TestBadRequest(t *testing.T) {
 	resp, err := http.Get(baseURL + "doesnotexist.html")
 	if resp.StatusCode != 404 || err != nil {
-		fmt.Printf("got %v, err = %v\n", resp.StatusCode, err)
+		t.Logf("got %v, err = %v\n", resp.StatusCode, err)
 		t.Fatal("request for non existent file didn't fail properly")
 	}
 }
@@ -65,8 +64,8 @@ func TestSimpleFetch(t *testing.T) {
 	}
 	desired := "<html><head></head><body></body></html>\n"
 	if body != desired {
-		fmt.Printf("   Got: '%v'\n", body)
-		fmt.Printf("Wanted: '%v'\n", desired)
+		t.Logf("   Got: '%v'\n", body)
+		t.Logf("Wanted: '%v'\n", desired)
 		t.Error("fetch succeeded, but content mismatched")
 	}
 }
@@ -74,22 +73,40 @@ func TestSimpleFetch(t *testing.T) {
 // TestSimpleMap figures out the site map for the site in baseURL
 func TestSimpleMap(t *testing.T) {
 	pages := docrawl(baseURL)
+	t.Log("pages = ", pages)
 	if len(pages) != 1 {
+		t.Logf("got %v, wanted %v\n", len(pages), 1)
 		t.Fatal("got wrong number of pages")
 	}
-	if pages[0].URL != baseURL {
+	if pages[0].URL.String() != baseURL {
 		t.Error("page URL is invalid")
 	}
-	if len(pages[0].Assets) != 1 {
-		t.Fatal("got wrong number of assets")
-	}
-	if pages[0].Assets[0] != baseURL+"/assets/image.png" {
-		t.Error("asset name is incorrect")
-	}
-	if len(pages[0].Links) != 1 {
+	if len(pages[0].Children) != 2 {
+		t.Logf("got %v, wanted %v\n", len(pages[0].Children), 1)
 		t.Fatal("got wrong number of links")
 	}
-	if pages[0].Links[0] != baseURL+"/about.html" {
+	if pages[0].Children[0].URL.String() != baseURL+"about.html" {
+		t.Logf("   Got: %q\n", pages[0].Children[0].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"about.html")
 		t.Error("link name is incorrect")
+	}
+	if pages[0].Children[1].URL.String() != baseURL+"assets/image.png" {
+		t.Logf("   Got: %q\n", pages[0].Children[1].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"assets/image.png")
+		t.Error("link name is incorrect")
+	}
+}
+
+// TestHeaderFetching tests fetch_filetype() to see if we are getting expected results
+func TestHeaderFetching(t *testing.T) {
+	if ft, err := fetch_filetype(baseURL); err != nil || ft != "text/html" {
+		t.Error("problem fetching filetype")
+	}
+	if ft, err := fetch_filetype(baseURL + "about.html"); err != nil || ft != "text/html" {
+		t.Error("problem fetching filetype")
+	}
+	if ft, err := fetch_filetype(baseURL + "assets/image.png"); err != nil || ft != "text/plain" {
+		t.Logf("got %q, wanted %q", ft, "text/plain")
+		t.Error("problem fetching filetype")
 	}
 }
