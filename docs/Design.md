@@ -35,11 +35,20 @@ These are features I'd like to include.
 * use Go context pattern
 * supports http & https
 
+## Architecture
+
+* use channels to form a pipeline
+* pipeline chain should be such that when there's no more work to do the job dispatcher closes the next channel in the pipeline, thereby closing the entire chain of channels (and exiting all goroutines)
+* could use Interfaces for things like Parser, Getter, but I think best avoided until needed
+* launch goroutine per fetch
+* when there's no Jobs left, and nothing being fetched or parsed, convert the data struct into something useful and output it
+
+
 ## Wishlist
 
 These are features that sound cool but are probably out of scope.
 
 * distributed
 * sitemap support https://en.wikipedia.org/wiki/Sitemaps
-* noindex tag
-* noidext http header
+* noindex tag (this might be pretty easy)
+* noindex http header (actually this seems pretty easy)
