@@ -8,7 +8,7 @@ import (
 func TestSimpleParse(t *testing.T) {
 	doc := `<html>
 	<head>
-		<title> Test Page  </title>
+		<TITle> Test Page  </title>
 	</head>
 	<body>
 		<img src="/assets/image.png"/>

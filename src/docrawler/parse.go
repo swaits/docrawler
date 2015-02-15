@@ -7,8 +7,8 @@ import (
 )
 
 // a regexp which captures src/href/xhref="..." from text
-var reURL = regexp.MustCompile(`(src|href|xhref)\s*=\s*"([^"]+)"`) // TODO make RFC compliant
-var reTitle = regexp.MustCompile(`<\s*title\s*>([^<]*)`)
+var reURL = regexp.MustCompile(`(?i)(src|href|xhref)\s*=\s*"([^"]+)"`) // TODO make RFC compliant
+var reTitle = regexp.MustCompile(`(?i)<\s*title\s*>([^<]*)<\s*\/\s*title`)
 
 // parse takes a string and attempts to parse any html title and all links out of it,
 // and returns a sorted slice of the captures found
@@ -17,6 +17,7 @@ func parse(s string) (string, []string, error) {
 	title := ""
 	titleMatches := reTitle.FindStringSubmatch(s)
 	if titleMatches != nil {
+		// we found a title, replace our default title with the result
 		title = strings.TrimSpace(titleMatches[1])
 	}
 
