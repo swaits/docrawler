@@ -3,7 +3,7 @@
 # derived from: http://zduck.com/2014/go-project-structure-and-dependencies/
 
 # build targets (which aren't files)
-.PHONY: build fmt lint vet test autotest run clean vendor
+.PHONY: build fmt lint vet test autotest run clean env vendor
 
 # configuration
 APPNAME := docrawler
@@ -41,6 +41,9 @@ run: build
 
 clean:
 	rm -f ./bin/${APPNAME}
+
+env:
+	go env
 
 # vendor
 # * wipes our vendor directory completely
