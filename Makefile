@@ -31,7 +31,7 @@ vet:
 	go vet ./src/...
 
 test:
-	go test ./src/... | ./util/testfilter.sh
+	go test -v ./src/... | ./util/testfilter.sh
 
 autotest:
 	fswatch -or ./src | \
