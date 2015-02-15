@@ -78,14 +78,14 @@ func TestSimpleFetch(t *testing.T) {
 func TestSimpleMap(t *testing.T) {
 	pages := docrawl(baseURL)
 	t.Log("pages = ", pages)
-	if len(pages) != 1 {
+	if len(pages) != 4 {
 		t.Logf("got %v, wanted %v\n", len(pages), 1)
 		t.Fatal("got wrong number of pages")
 	}
 	if pages[0].URL.String() != baseURL {
 		t.Error("page URL is invalid")
 	}
-	if len(pages[0].Children) != 2 {
+	if len(pages[0].Children) != 3 {
 		t.Logf("got %v, wanted %v\n", len(pages[0].Children), 1)
 		t.Fatal("got wrong number of links")
 	}
@@ -97,6 +97,11 @@ func TestSimpleMap(t *testing.T) {
 	if pages[0].Children[1].URL.String() != baseURL+"assets/image.png" {
 		t.Logf("   Got: %q\n", pages[0].Children[1].URL.String())
 		t.Logf("Wanted: %q\n", baseURL+"assets/image.png")
+		t.Error("link name is incorrect")
+	}
+	if pages[0].Children[2].URL.String() != baseURL+"scripts/blah.js" {
+		t.Logf("   Got: %q\n", pages[0].Children[2].URL.String())
+		t.Logf("Wanted: %q\n", baseURL+"scripts/blah.js")
 		t.Error("link name is incorrect")
 	}
 }
