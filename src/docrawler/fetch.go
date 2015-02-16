@@ -9,6 +9,7 @@ import (
 
 var (
 	errContentTypeNotFound = errors.New("no Content-Type header found")
+	errFetchError = errors.New("couldn't fetch page")
 )
 
 // fetchFiletype performs an http HEAD to get the media type, and sets it
@@ -17,6 +18,11 @@ func fetchFiletype(page *Page) error {
 	resp, err := http.Head(page.URL.String())
 	if err != nil {
 		return err
+	}
+
+	// check response code
+	if resp.StatusCode != http.StatusOK {
+		return errFetchError
 	}
 
 	// pull the content type out of the http header
@@ -45,10 +51,20 @@ func fetchPage(page *Page) (string, error) {
 		return "", err
 	}
 
+	// we only want to fetch html
+	if page.MediaType != "text/html" {
+		return "", nil // but this isn't an error!
+	}
+
 	// GET the url
 	resp, err := http.Get(page.URL.String())
 	if err != nil {
 		return "", err
+	}
+
+	// check response code
+	if resp.StatusCode != http.StatusOK {
+		return "", errFetchError
 	}
 
 	// read the body

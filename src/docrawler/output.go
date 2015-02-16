@@ -33,11 +33,11 @@ func sitemapToLocations(pages []*Page) []*Location {
 			for _, c := range p.Children {
 				// look up this child's media type from the root list of pages
 				//mediaType := pageMap[c.URL.String()].MediaType
-				if c.Skipped == true {
+				if c.Skipped {
 					l.Remote = append(l.Remote, c.URL.String())
 				} else if c.MediaType == "text/html" {
 					l.Links = append(l.Links, c.URL.String())
-				} else if c.MediaType == "" {
+				} else if c.Broken {
 					l.Broken = append(l.Broken, c.URL.String())
 				} else {
 					l.Assets = append(l.Assets, c.URL.String())

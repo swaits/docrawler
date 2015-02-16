@@ -177,8 +177,8 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New Page struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.MediaType != "text/plain" {
-		t.Logf("got %q, wanted %q", page.MediaType, "text/plain")
+	if err := fetchFiletype(page); err != nil || page.MediaType != "image/png" {
+		t.Logf("got %q, wanted %q", page.MediaType, "image/png")
 		t.Error("problem fetching filetype")
 	}
 }
@@ -196,13 +196,17 @@ func TestJsonOutput(t *testing.T) {
 	if len(l[0].Links) != 1 {
 		t.Error("location 0 has wrong number of links")
 	}
-	if len(l[0].Assets) != 3 {
+	if len(l[0].Assets) != 2 {
 		t.Logf("got %v", len(l[0].Assets))
 		t.Error("location 0 has wrong number of assets")
 	}
-	if len(l[0].Broken) != 0 {
+	if len(l[0].Broken) != 1 {
 		t.Logf("got %v", len(l[0].Broken))
 		t.Error("location 0 has wrong number of broken urls")
+	}
+	if len(l[0].Remote) != 0 {
+		t.Logf("got %v", len(l[1].Remote))
+		t.Error("location 0 has wrong number of remote urls")
 	}
 	if l[1].URL != baseURL+"about.html" {
 		t.Error("got an incorrect location")
@@ -217,11 +221,15 @@ func TestJsonOutput(t *testing.T) {
 		t.Logf("got %v", len(l[1].Broken))
 		t.Error("location 1 has wrong number of broken urls")
 	}
+	if len(l[1].Remote) != 1 {
+		t.Logf("got %v", len(l[1].Remote))
+		t.Error("location 1 has wrong number of remote urls")
+	}
 
 	// this is a cheater test because the output is from a run of the code being
 	// test itself. but, it's been examined and I think it's right. and, there's not
 	// many other ways to test this without some significant pain
-	cheaterTest := `[{"URL":"http://localhost:8765/","Title":"Home","Links":["http://localhost:8765/about.html"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js","http://localhost:8765/zzzbroken.html"],"Broken":null,"Remote":null},{"URL":"http://localhost:8765/about.html","Title":"About Test","Links":["http://localhost:8765/"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":null,"Remote":["http://doesntexist23492387492837492374982734.com/"]}]`
+	cheaterTest := `[{"URL":"http://localhost:8765/","Title":"Home","Links":["http://localhost:8765/about.html"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":["http://localhost:8765/zzzbroken.html"],"Remote":null},{"URL":"http://localhost:8765/about.html","Title":"About Test","Links":["http://localhost:8765/"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":null,"Remote":["http://doesntexist23492387492837492374982734.com/"]}]`
 	j, err := locationsToJSON(l)
 	if err != nil {
 		t.Error("locationsToJSON failed")
@@ -229,4 +237,5 @@ func TestJsonOutput(t *testing.T) {
 	if j != cheaterTest {
 		t.Error("locationsToJSON text doesn't match")
 	}
+	t.Log(j)
 }
