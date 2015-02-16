@@ -44,7 +44,6 @@ These are features I'd like to include.
 * launch goroutine per fetch
 * when there's no Jobs left, and nothing being fetched or parsed, convert the data struct into something useful and output it
 
-
 ## Wishlist
 
 These are features that sound cool but are probably out of scope.
