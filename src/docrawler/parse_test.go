@@ -26,10 +26,10 @@ func TestSimpleParse(t *testing.T) {
 	if len(matches) != 3 {
 		t.Error("invalid number of matches in parse")
 	}
-	if matches[0] != "/about.html" {
+	if matches[0] != "/assets/image.png" {
 		t.Error("match text is invalid")
 	}
-	if matches[1] != "/assets/image.png" {
+	if matches[1] != "/about.html" {
 		t.Error("match text is invalid")
 	}
 	if matches[2] != "scripts/blah.js" {

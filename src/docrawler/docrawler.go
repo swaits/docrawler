@@ -26,6 +26,16 @@ func docrawl(url string) []*Page {
 		// mark this page as complete
 		crawled[dest.URL.String()] = dest
 
+		// add page to list
+		sitemap = append(sitemap, dest)
+
+		// make sure this URL has the same hostname as our first page
+		if dest.URL.Host != homepage.URL.Host {
+			// skip URLs associated with other Hosts
+			dest.Skipped = true
+			continue
+		}
+
 		// fetch page
 		text, err := fetchPage(dest)
 		if err != nil {
@@ -60,9 +70,6 @@ func docrawl(url string) []*Page {
 				queued[p.URL.String()] = p
 			}
 		}
-
-		// add page to list
-		sitemap = append(sitemap, dest)
 	}
 
 	return sitemap

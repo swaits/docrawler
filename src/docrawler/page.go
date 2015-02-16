@@ -9,6 +9,7 @@ type Page struct {
 	URL       *url.URL
 	Title     string
 	MediaType string
+	Skipped   bool
 	Children  []*Page
 }
 
@@ -27,5 +28,5 @@ func NewPage(referrer *Page, rawurl string) (*Page, error) {
 	}
 
 	// create struct and return
-	return &Page{URL: u}, nil
+	return &Page{URL: u, Skipped: false}, nil
 }
