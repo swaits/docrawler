@@ -39,10 +39,10 @@ These are features I'd like to include.
 
 * use channels to form a pipeline
 * pipeline chain should be such that when there's no more work to do the job dispatcher closes the next channel in the pipeline, thereby closing the entire chain of channels (and exiting all goroutines)
+* pipeline may allows us to scale concurrency at the bottlenecks
 * could use Interfaces for things like Parser, Getter, but I think best avoided until needed
 * launch goroutine per fetch
 * when there's no Jobs left, and nothing being fetched or parsed, convert the data struct into something useful and output it
-
 
 ## Wishlist
 
