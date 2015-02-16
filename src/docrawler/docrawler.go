@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"os"
+)
+
 // docrawl begins crawling the site at "url"
 func docrawl(url string) []*Page {
 	// our result structure
@@ -78,4 +83,11 @@ func docrawl(url string) []*Page {
 }
 
 func main() {
+	// crawl each URL on the command line
+	for _, u := range os.Args[1:] {
+		pages := docrawl(u)
+		l := sitemapToLocations(pages)
+		j, _ := locationsToJSON(l)
+		fmt.Println(j)
+	}
 }
