@@ -18,13 +18,13 @@ func TestMain(m *testing.M) {
 	// start our simple web server
 	l, err := net.Listen("tcp", ":"+strconv.Itoa(port))
 	if err != nil {
-		panic("unable to open port for http server") // TODO remove panic?
+		panic("unable to open port for http server")
 	}
 	http.Handle("/", http.FileServer(http.Dir("./testsite")))
 	go func() {
 		err = http.Serve(l, nil)
 		if err != nil {
-			panic("unable to start http server") // TODO remove panic?
+			panic("unable to start http server")
 		}
 	}()
 
@@ -131,4 +131,50 @@ func TestHeaderFetching(t *testing.T) {
 		t.Logf("got %q, wanted %q", page.MediaType, "text/plain")
 		t.Error("problem fetching filetype")
 	}
+}
+
+// TestJsonOutput gets a sitemap and then converts it to json
+func TestJsonOutput(t *testing.T) {
+	pages := docrawl(baseURL)
+	l := sitemapToLocations(pages)
+	if len(l) != 2 {
+		t.Error("sitemapToLocations has the wrong number of locations")
+	}
+	if l[0].URL != baseURL {
+		t.Error("got an incorrect location")
+	}
+	if len(l[0].Links) != 1 {
+		t.Error("location 0 has wrong number of links")
+	}
+	if len(l[0].Assets) != 2 {
+		t.Error("location 0 has wrong number of assets")
+	}
+	if len(l[0].Broken) != 0 {
+		t.Error("location 0 has wrong number of broken urls")
+	}
+	if l[1].URL != baseURL+"about.html" {
+		t.Error("got an incorrect location")
+	}
+	if len(l[1].Links) != 1 {
+		t.Error("location 1 has wrong number of links")
+	}
+	if len(l[1].Assets) != 2 {
+		t.Error("location 1 has wrong number of assets")
+	}
+	if len(l[1].Broken) != 1 {
+		t.Error("location 1 has wrong number of broken urls")
+	}
+
+	// this is a cheater test because the output is from a run of the code being
+	// test itself. but, it's been examined and I think it's right. and, there's not
+	// many other ways to test this without some significant pain
+	cheaterTest := `[{"URL":"http://localhost:8765/","Title":"Home","Links":["http://localhost:8765/about.html"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":null},{"URL":"http://localhost:8765/about.html","Title":"About Test","Links":["http://localhost:8765/"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":["http://doesntexist23492387492837492374982734.com/"]}]`
+	j, err := locationsToJSON(l)
+	if err != nil {
+		t.Error("locationsToJSON failed")
+	}
+	if j != cheaterTest {
+		t.Error("locationsToJSON text doesn't match")
+	}
+	t.Log(j)
 }

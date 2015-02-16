@@ -1,7 +1,5 @@
 package main
 
-import ()
-
 // docrawl begins crawling the site at "url"
 func docrawl(url string) []*Page {
 	// our result structure
@@ -35,18 +33,30 @@ func docrawl(url string) []*Page {
 		}
 
 		// parse links
-		_, links, err := parseLinks(text)
+		title, links, err := parseLinks(text)
 		if err != nil {
 			continue // TODO handle
 		}
+		dest.Title = title
 		for _, l := range links {
-			p, _ := NewPage(dest, l) // TODO check error
-			dest.Children = append(dest.Children, p)
+			p, err := NewPage(dest, l)
+			if err != nil {
+				continue // TODO check error
+			}
 
-			// see if we should queue this new page for crawling
-			_, haveCrawled := crawled[p.URL.String()]
-			_, haveQueued := queued[p.URL.String()]
-			if !haveCrawled && !haveQueued {
+			// see if we already know about this page
+			pCrawled, haveCrawled := crawled[p.URL.String()]
+			pQueued, haveQueued := queued[p.URL.String()]
+			if haveCrawled {
+				// add the previously crawled page to children
+				dest.Children = append(dest.Children, pCrawled)
+			} else if haveQueued {
+				// add the previously queued page to children
+				dest.Children = append(dest.Children, pQueued)
+			} else {
+				// add this new page (never seen) to children
+				dest.Children = append(dest.Children, p)
+				// .. and queue it up for crawling
 				queued[p.URL.String()] = p
 			}
 		}
