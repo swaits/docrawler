@@ -77,7 +77,6 @@ func TestSimpleFetch(t *testing.T) {
 // TestSimpleMap figures out the site map for the site in baseURL
 func TestSimpleMap(t *testing.T) {
 	pages := docrawl(baseURL)
-	t.Log("pages = ", pages)
 	if len(pages) != 4 {
 		t.Logf("got %v, wanted %v\n", len(pages), 1)
 		t.Fatal("got wrong number of pages")

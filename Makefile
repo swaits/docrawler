@@ -3,7 +3,7 @@
 # derived from: http://zduck.com/2014/go-project-structure-and-dependencies/
 
 # build targets (which aren't files)
-.PHONY: build fmt lint vet test autotest cover doc run clean env vendor
+.PHONY: build fmt lint vet test autotest cover doc run clean env stats vendor
 
 # configuration
 APPNAME := docrawler
@@ -26,8 +26,8 @@ build: fmt lint vet
 fmt:
 	go fmt ./src/...
 
+# TODO golint is not accepting the "./src/..." for some reason (from within make)
 lint:
-	# TODO golint is not accepting the "./src/..." for some reason (from within make)
 	golint ./src/${APPNAME}/*.go
 
 vet:
@@ -54,6 +54,9 @@ clean:
 
 env:
 	go env
+
+stats:
+	cloc ./src
 
 # vendor
 # * wipes our vendor directory completely
