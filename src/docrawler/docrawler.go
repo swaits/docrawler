@@ -39,13 +39,15 @@ func docrawl(url string) []*Page {
 		// fetch page
 		text, err := fetchPage(dest)
 		if err != nil {
-			continue // TODO handle
+			dest.Broken = true
+			continue
 		}
 
 		// parse links
 		title, links, err := parseLinks(text)
 		if err != nil {
-			continue // TODO handle
+			dest.Broken = true
+			continue
 		}
 		dest.Title = title
 		for _, l := range links {
