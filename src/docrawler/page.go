@@ -7,7 +7,6 @@ import (
 // Page is a struct which defines a single page, which URLs (links and assets) it contains, etc.
 type Page struct {
 	URL       *url.URL
-	Base      *Page
 	Title     string
 	MediaType string
 	Children  []*Page
