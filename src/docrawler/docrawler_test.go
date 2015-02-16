@@ -92,7 +92,7 @@ func TestSimpleMap(t *testing.T) {
 			skippage = p
 		}
 		if p.Skipped {
-			skipped += 1
+			skipped++
 		}
 		children += len(p.Children)
 	}

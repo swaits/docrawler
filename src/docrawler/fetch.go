@@ -9,7 +9,7 @@ import (
 
 var (
 	errContentTypeNotFound = errors.New("no Content-Type header found")
-	errFetchError = errors.New("couldn't fetch page")
+	errFetchError          = errors.New("couldn't fetch page")
 )
 
 // fetchFiletype performs an http HEAD to get the media type, and sets it
