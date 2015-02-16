@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"sort"
 )
 
 // Location is a struct which defines a single URL, which URLs (links and assets) it contains, etc.
@@ -11,6 +12,7 @@ type Location struct {
 	Links  []string
 	Assets []string
 	Broken []string
+	Remote []string
 }
 
 func sitemapToLocations(pages []*Page) []*Location {
@@ -31,7 +33,9 @@ func sitemapToLocations(pages []*Page) []*Location {
 			for _, c := range p.Children {
 				// look up this child's media type from the root list of pages
 				//mediaType := pageMap[c.URL.String()].MediaType
-				if c.MediaType == "text/html" {
+				if c.Skipped == true {
+					l.Remote = append(l.Remote, c.URL.String())
+				} else if c.MediaType == "text/html" {
 					l.Links = append(l.Links, c.URL.String())
 				} else if c.MediaType == "" {
 					l.Broken = append(l.Broken, c.URL.String())
@@ -39,6 +43,12 @@ func sitemapToLocations(pages []*Page) []*Location {
 					l.Assets = append(l.Assets, c.URL.String())
 				}
 			}
+
+			// now sort the children slices
+			sort.Strings(l.Remote)
+			sort.Strings(l.Links)
+			sort.Strings(l.Broken)
+			sort.Strings(l.Assets)
 
 			// and add this location to our slice
 			locations = append(locations, l)
