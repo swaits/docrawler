@@ -25,11 +25,6 @@ func docrawl(url string) []*Page {
 		}
 		delete(queued, destURL)
 
-		// skip loop if we already did this URL
-		if _, ok := crawled[dest.URL.String()]; ok {
-			continue // TODO handle
-		}
-
 		// mark this page as complete
 		crawled[dest.URL.String()] = dest
 

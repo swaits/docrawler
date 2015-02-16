@@ -52,3 +52,19 @@ func TestURLResolution(t *testing.T) {
 	doResolveTest(t, "http://another.com/blah.html", "http://S:D@BaSe.CoM:1/some/crazy/path/index.html?parm=x&blah=foo", "http://aNOThER.CoM/blah.html")
 	doResolveTest(t, "http://empty.com/blah.html", "", "http://empty.com/blah.html")
 }
+
+// TestBadResolve tries to resolve bogus URLs to be sure we're getting errors
+/* TODO not sure how to make url.Parse fail in these cases!!!
+func TestBadResolve(t* testing.T) {
+	u, err := resolveURL("http://a.com/", "h%20t\tp://doesnte%20xist23492387492837492374982734.com/")
+	if err == nil {
+		t.Logf("got %q", u.String())
+		t.Error("tried resolveURL with an invalid URL but didn't get an error")
+	}
+	u, err = resolveURL("h%20t\tp://doesnte%20xist23492387492837492374982734.com/", "http://a.com/")
+	if err == nil {
+		t.Logf("got %q", u.String())
+		t.Error("tried resolveURL with an invalid URL but didn't get an error")
+	}
+}
+*/
