@@ -91,7 +91,7 @@ func TestSimpleMap(t *testing.T) {
 		} else if p.url.String() == "http://doesntexist23492387492837492374982734.com/" {
 			skippage = p
 		}
-		if p.skipped {
+		if p.linkType == tRemote {
 			skipped++
 		}
 		children += len(p.children)
@@ -127,11 +127,11 @@ func TestSimpleMap(t *testing.T) {
 	}
 
 	// make sure remote pages were skipped
-	if homepage.skipped != false {
+	if homepage.linkType == tRemote {
 		t.Logf("found a page that should NOT have been skipped %q", homepage.children[0].url.String())
 		t.Error("child was skipped")
 	}
-	if skippage.skipped != true {
+	if skippage.linkType != tRemote {
 		t.Logf("found a page that should have been skipped %q", pages[3].children[2].url.String())
 		t.Error("child wasn't skipped")
 	}
@@ -161,7 +161,7 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(basepage); err != nil || basepage.mediaType != "text/html" {
+	if err := fetchFiletype(basepage); err != nil || basepage.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
@@ -169,7 +169,7 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.mediaType != "text/html" {
+	if err := fetchFiletype(page); err != nil || page.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
@@ -177,8 +177,8 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.mediaType != "image/png" {
-		t.Logf("got %q, wanted %q", page.mediaType, "image/png")
+	if err := fetchFiletype(page); err != nil || page.linkType != tAsset {
+		t.Logf("got %q, wanted %q", page.linkType, tAsset)
 		t.Error("problem fetching filetype")
 	}
 }

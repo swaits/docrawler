@@ -15,7 +15,16 @@ type Location struct {
 	Remote []string
 }
 
-func sitemapToLocations(pages []*httpItem) []*Location {
+// implement Location slice sorting (by URL)
+type byURL []*Location
+
+// implement Sort interface on byURL (which is a []*Location)
+func (l byURL) Len() int           { return len(l) }
+func (l byURL) Less(i, j int) bool { return l[i].URL < l[j].URL }
+func (l byURL) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+
+// sitemapToLocations converts an itemSlice to []*Location, which is appropriate for marshalling
+func sitemapToLocations(pages itemSlice) []*Location {
 	// build a map of our pages
 	pageMap := make(map[string]*httpItem)
 	for _, p := range pages {
@@ -25,7 +34,7 @@ func sitemapToLocations(pages []*httpItem) []*Location {
 	// build a slice of locations (one per page)
 	var locations []*Location
 	for _, p := range pages {
-		if p.mediaType == "text/html" {
+		if p.linkType == tHTMLPage {
 			// create a location for this page
 			l := &Location{URL: p.url.String(), Title: p.title}
 
@@ -33,11 +42,11 @@ func sitemapToLocations(pages []*httpItem) []*Location {
 			for _, c := range p.children {
 				// look up this child's media type from the root list of pages
 				//mediaType := pageMap[c.url.String()].mediaType
-				if c.skipped {
+				if c.linkType == tRemote {
 					l.Remote = append(l.Remote, c.url.String())
-				} else if c.mediaType == "text/html" {
+				} else if c.linkType == tHTMLPage {
 					l.Links = append(l.Links, c.url.String())
-				} else if c.broken {
+				} else if c.linkType == tBroken {
 					l.Broken = append(l.Broken, c.url.String())
 				} else {
 					l.Assets = append(l.Assets, c.url.String())
@@ -55,6 +64,8 @@ func sitemapToLocations(pages []*httpItem) []*Location {
 		}
 	}
 
+	// sort the Locations themselves and return
+	sort.Sort(byURL(locations))
 	return locations
 }
 
