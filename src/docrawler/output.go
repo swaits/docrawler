@@ -79,7 +79,7 @@ func sitemapToLocations(pages itemSlice) []*Location {
 
 // locationsToJSON takes a *Location slice and marshals it into a JSON string
 func locationsToJSON(locations []*Location) (string, error) {
-	b, err := json.Marshal(locations)
+	b, err := json.MarshalIndent(locations, "", "  ")
 	if err != nil {
 		return "", err
 	}
