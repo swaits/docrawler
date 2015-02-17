@@ -69,14 +69,36 @@ func TestBadResolve(t* testing.T) {
 }
 */
 
-// TestURLStripAnchor tests the stripAnchorFromURL() function
+// TestURLStripAnchor tests the stripURL() function
 func TestURLStripAnchor(t *testing.T) {
-	u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/blah.html?x=y#foo")
-	if err != nil {
-		t.Fatal("couldn't parse a URL")
+	{
+		u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/blah.html?x=y#foo")
+		if err != nil {
+			t.Fatal("couldn't parse a URL")
+		}
+		stripped := stripURL(u)
+		if stripped != "http://swaits:pass@somehost.com:8765/blah/blah.html?x=y" {
+			t.Error("stripping anchor #foo from URL failed")
+		}
 	}
-	stripped := stripAnchorFromURL(u)
-	if stripped != "http://swaits:pass@somehost.com:8765/blah/blah.html?x=y" {
-		t.Error("stripping anchor #foo from URL failed")
+	{
+		u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/index.html?x=y#foo")
+		if err != nil {
+			t.Fatal("couldn't parse a URL")
+		}
+		stripped := stripURL(u)
+		if stripped != "http://swaits:pass@somehost.com:8765/blah/?x=y" {
+			t.Error("stripping anchor #foo from URL failed")
+		}
+	}
+	{
+		u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/index.htm?x=y#foo")
+		if err != nil {
+			t.Fatal("couldn't parse a URL")
+		}
+		stripped := stripURL(u)
+		if stripped != "http://swaits:pass@somehost.com:8765/blah/?x=y" {
+			t.Error("stripping anchor #foo from URL failed")
+		}
 	}
 }

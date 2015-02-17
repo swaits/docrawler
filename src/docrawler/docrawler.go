@@ -12,6 +12,11 @@ func doCrawl(homeurl string) itemSlice {
 	// set of what we have already crawled
 	crawled := make(itemMap)
 
+	// a set of crawled URLs which have been cleaned
+	// useful so that we don't crawl http://a.com/index.html#about if we've
+	// already crawled http://a.com/index.html, or vice versa
+	crawledStripped := make(itemMap)
+
 	// map (of urlString -> httpItem) of our results
 	results := make(itemMap)
 
@@ -32,6 +37,7 @@ func doCrawl(homeurl string) itemSlice {
 
 	// start the home page crawl
 	crawled[homeitem.url.String()] = homeitem
+	crawledStripped[stripURL(homeitem.url)] = homeitem
 	go crawlItem(homeitem, rchan)
 
 	// wait for results
@@ -59,10 +65,21 @@ func doCrawl(homeurl string) itemSlice {
 					r.children[i] = existing
 					continue
 				}
+				if existing, ok := crawledStripped[stripURL(c.url)]; ok {
+					// we crawled a different version of this same page
+					// i.e. same page, different anchor. we don't need to crawl it again
+					// but we do need to keep it in our results, so copy the existing
+					// struct over for everything except the URLs
+					r.children[i].title = existing.title
+					r.children[i].linkType = existing.linkType
+					r.children[i].children = existing.children
+					continue
+				}
 
 				// haven't crawled this one yet, do so now
 				crawlingCount++
 				crawled[c.url.String()] = c
+				crawledStripped[stripURL(c.url)] = c
 				go crawlItem(c, rchan)
 			}
 
