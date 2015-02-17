@@ -62,7 +62,7 @@ func TestSimpleFetch(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	body, err := fetchPage(page)
+	body, err := fetchItem(page)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func TestSimpleFetch(t *testing.T) {
 
 // TestSimpleMap figures out the site map for the site in baseURL
 func TestSimpleMap(t *testing.T) {
-	pages := doCrawl(baseURL)
+	pages := doCrawl(baseURL, 10)
 
 	// because our crawl is non-deterministic, we have to do a complete
 	// cycle through every page, counting stuff, finding specific pages
@@ -185,7 +185,7 @@ func TestHeaderFetching(t *testing.T) {
 
 // TestJsonOutput gets a sitemap and then converts it to json
 func TestJsonOutput(t *testing.T) {
-	pages := doCrawl(baseURL)
+	pages := doCrawl(baseURL, 10)
 	l := sitemapToLocations(pages)
 	if len(l) != 2 {
 		t.Error("sitemapToLocations has the wrong number of locations")
