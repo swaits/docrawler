@@ -29,7 +29,7 @@ func doCrawl(homeurl string) itemSlice {
 	// create first page's httpItem
 	homeitem, err := newHTTPItem(nil, homeurl)
 	if err != nil {
-		log.Fatal("unable to create httpItem for homeurl")
+		return nil
 	}
 
 	// set our number of outstanding pages (initially 1 to account for first page)
@@ -141,9 +141,18 @@ func crawlItem(item *httpItem, rchan chan<- *httpItem) {
 }
 
 func main() {
+	// see if we've got no arguments
+	if len(os.Args) == 1 {
+		fmt.Printf("\nD.O. Crawler 1.0  Copyright (c) 2015 Stephen Waits <steve@waits.net>  2015-02-17\n\n")
+		fmt.Printf("usage: %v <URLs...>\n\n", os.Args[0])
+		os.Exit(1)
+	}
 	// crawl each URL on the command line
 	for _, u := range os.Args[1:] {
 		pages := doCrawl(u)
+		if pages == nil {
+			log.Fatalf("unable to crawl %q, may be an invalid URL\n", u)
+		}
 		l := sitemapToLocations(pages)
 		j, _ := locationsToJSON(l)
 		fmt.Println(j)
