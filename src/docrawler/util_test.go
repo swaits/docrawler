@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// TestUniqStrings passes a slice of strings to uniqStrings() to see if it removes
+// all duplicates
 func TestUniqStrings(t *testing.T) {
 	strs := []string{"a", "a", "b", "a", "b", "c", "d", "a", "b", "e", "d"}
 	uniq := uniqStrings(strs)
@@ -17,6 +19,7 @@ func TestUniqStrings(t *testing.T) {
 	}
 }
 
+// TestUniqStringsNilParm passes a nil slice to uniqStrings to be sure it returns nil
 func TestUniqStringsNilParm(t *testing.T) {
 	uniq := uniqStrings(nil)
 	if uniq != nil {

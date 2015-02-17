@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// custom errors
 var (
 	errInvalidURL = errors.New("this URL can't be parsed successfully")
 )
@@ -50,6 +51,9 @@ func resolveURL(referringURL string, currentURL string) (*url.URL, error) {
 	return uResolved, checkURL(uResolved)
 }
 
+// stripAnchorFromURL returns a version of the URL with out the "Fragment" part,
+// which is anything after the '#' character, so:
+// http://a.com/blah.html#anchor becomes http://a.com/blah.html
 func stripAnchorFromURL(u *url.URL) string {
 	// copy the url locally
 	ucopy := *u

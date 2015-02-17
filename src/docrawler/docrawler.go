@@ -8,7 +8,7 @@ import (
 )
 
 // docrawl begins crawling the site at "homeurl"
-func docrawl(homeurl string) itemSlice {
+func doCrawl(homeurl string) itemSlice {
 	// set of what we have already crawled
 	crawled := make(itemMap)
 
@@ -126,7 +126,7 @@ func crawlItem(item *httpItem, rchan chan<- *httpItem) {
 func main() {
 	// crawl each URL on the command line
 	for _, u := range os.Args[1:] {
-		pages := docrawl(u)
+		pages := doCrawl(u)
 		l := sitemapToLocations(pages)
 		j, _ := locationsToJSON(l)
 		fmt.Println(j)

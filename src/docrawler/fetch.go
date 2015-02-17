@@ -7,6 +7,7 @@ import (
 	"net/http"
 )
 
+// custom errors
 var (
 	errContentTypeNotFound = errors.New("no Content-Type header found")
 	errFetchError          = errors.New("couldn't fetch item")

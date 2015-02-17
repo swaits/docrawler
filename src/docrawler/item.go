@@ -13,6 +13,7 @@ type itemMap map[string]*httpItem
 // itemType is an enum so we know how to classify each item
 type itemType int
 
+// enums for itemType
 const (
 	tUnknown itemType = iota
 	tHTMLPage

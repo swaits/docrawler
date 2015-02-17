@@ -69,6 +69,7 @@ func TestBadResolve(t* testing.T) {
 }
 */
 
+// TestURLStripAnchor tests the stripAnchorFromURL() function
 func TestURLStripAnchor(t *testing.T) {
 	u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/blah.html?x=y#foo")
 	if err != nil {

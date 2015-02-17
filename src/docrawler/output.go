@@ -77,6 +77,7 @@ func sitemapToLocations(pages itemSlice) []*Location {
 	return locations
 }
 
+// locationsToJSON takes a *Location slice and marshals it into a JSON string
 func locationsToJSON(locations []*Location) (string, error) {
 	b, err := json.Marshal(locations)
 	if err != nil {
