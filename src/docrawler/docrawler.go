@@ -119,36 +119,30 @@ func crawlListner(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
 				// channel closed, finish
 				return
 			}
-			crawlItem(newJob, rxchan)
+			// perform the crawl
+			rxchan <- crawlItem(newJob)
 		}
 	}
 }
 
 // crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
 // and filling out its structure as much as possible
-func crawlItem(item *httpItem, rxchan chan<- *httpItem) {
+func crawlItem(item *httpItem) *httpItem {
 	// make sure this item is the same domain (i.e. URL "host part") as its referrer
 	if item.refurl != nil && item.url.Host != item.refurl.Host {
 		// skip URLs associated with other Hosts
 		item.linkType = tRemote
-		rxchan <- item
-		return
+		return item
 	}
 
 	// fetch page
 	text, err := fetchPage(item)
 	if err != nil {
-		rxchan <- item
-		return
+		return item
 	}
 
 	// parse links
-	title, links := parseLinks(text) // TODO remove error from parseLinks, not needed
-	if err != nil {
-		item.linkType = tBroken
-		rxchan <- item
-		return
-	}
+	title, links := parseLinks(text)
 	item.title = title
 
 	// walk links and add them as children to the current item
@@ -161,7 +155,7 @@ func crawlItem(item *httpItem, rxchan chan<- *httpItem) {
 	}
 
 	// send back our item struct now that it's all filled out
-	rxchan <- item
+	return item
 }
 
 func main() {
