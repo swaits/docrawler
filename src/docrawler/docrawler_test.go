@@ -102,7 +102,7 @@ func TestSimpleMap(t *testing.T) {
 		t.Logf("got %v, wanted %v\n", len(pages), 6)
 		t.Fatal("got wrong number of pages")
 	}
-	if children != 8 {
+	if children != 9 {
 		t.Logf("got %v, wanted %v\n", children, 8)
 		t.Fatal("got wrong number of total children")
 	}
@@ -117,7 +117,7 @@ func TestSimpleMap(t *testing.T) {
 	}
 
 	// specific page number of children
-	if len(homepage.children) != 4 {
+	if len(homepage.children) != 5 {
 		t.Logf("got %v, wanted %v\n", len(homepage.children), 4)
 		t.Fatal("got wrong number of links")
 	}

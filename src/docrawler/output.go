@@ -48,9 +48,13 @@ func sitemapToLocations(pages itemSlice) []*Location {
 					l.Links = append(l.Links, c.url.String())
 				} else if c.linkType == tBroken {
 					l.Broken = append(l.Broken, c.url.String())
-				} else {
+				} else if c.linkType == tAsset {
 					l.Assets = append(l.Assets, c.url.String())
+				} else {
+					// unknown link here, which means it failed to crawl, let's call it "broken"
+					l.Broken = append(l.Broken, c.url.String())
 				}
+
 			}
 
 			// now uniq & sort the children slices
