@@ -58,9 +58,9 @@ func TestBadRequest(t *testing.T) {
 
 // TestSimpleFetch makes sure we can fetch a file and we get exactly what we expect
 func TestSimpleFetch(t *testing.T) {
-	page, err := NewPage(nil, baseURL+"fetch_test.html")
+	page, err := newHTTPItem(nil, baseURL+"fetch_test.html")
 	if err != nil {
-		t.Error("problem creating New Page struct")
+		t.Error("problem creating New httpItem struct")
 	}
 	body, err := fetchPage(page)
 	if err != nil {
@@ -82,19 +82,19 @@ func TestSimpleMap(t *testing.T) {
 	// cycle through every page, counting stuff, finding specific pages
 	// so that we can then verify certain aspects of each page
 	skipped, children := 0, 0
-	var homepage, aboutpage, skippage *Page
+	var homepage, aboutpage, skippage *httpItem
 	for _, p := range pages {
-		if p.Title == "Home" {
+		if p.title == "Home" {
 			homepage = p
-		} else if p.Title == "About Test" {
+		} else if p.title == "About Test" {
 			aboutpage = p
-		} else if p.URL.String() == "http://doesntexist23492387492837492374982734.com/" {
+		} else if p.url.String() == "http://doesntexist23492387492837492374982734.com/" {
 			skippage = p
 		}
-		if p.Skipped {
+		if p.linkType == tRemote {
 			skipped++
 		}
-		children += len(p.Children)
+		children += len(p.children)
 	}
 
 	// check page counts
@@ -112,44 +112,44 @@ func TestSimpleMap(t *testing.T) {
 	}
 
 	// check first page URL
-	if homepage.URL.String() != baseURL {
+	if homepage.url.String() != baseURL {
 		t.Error("page URL is invalid")
 	}
 
 	// specific page number of children
-	if len(homepage.Children) != 4 {
-		t.Logf("got %v, wanted %v\n", len(homepage.Children), 4)
+	if len(homepage.children) != 4 {
+		t.Logf("got %v, wanted %v\n", len(homepage.children), 4)
 		t.Fatal("got wrong number of links")
 	}
-	if len(aboutpage.Children) != 4 {
-		t.Logf("got %v, wanted %v\n", len(aboutpage.Children), 4)
+	if len(aboutpage.children) != 4 {
+		t.Logf("got %v, wanted %v\n", len(aboutpage.children), 4)
 		t.Fatal("got wrong number of links")
 	}
 
 	// make sure remote pages were skipped
-	if homepage.Skipped != false {
-		t.Logf("found a page that should NOT have been skipped %q", homepage.Children[0].URL.String())
+	if homepage.linkType == tRemote {
+		t.Logf("found a page that should NOT have been skipped %q", homepage.children[0].url.String())
 		t.Error("child was skipped")
 	}
-	if skippage.Skipped != true {
-		t.Logf("found a page that should have been skipped %q", pages[3].Children[2].URL.String())
+	if skippage.linkType != tRemote {
+		t.Logf("found a page that should have been skipped %q", pages[3].children[2].url.String())
 		t.Error("child wasn't skipped")
 	}
 
 	// verify page content
 	// TODO find a better way to do this
-	//if homepage.Children[0].URL.String() != baseURL+"about.html" {
-	//t.Logf("   Got: %q\n", homepage.Children[0].URL.String())
+	//if homepage.children[0].url.String() != baseURL+"about.html" {
+	//t.Logf("   Got: %q\n", homepage.children[0].url.String())
 	//t.Logf("Wanted: %q\n", baseURL+"about.html")
 	//t.Error("link name is incorrect")
 	//}
-	//if homepage.Children[1].URL.String() != baseURL+"assets/image.png" {
-	//t.Logf("   Got: %q\n", homepage.Children[1].URL.String())
+	//if homepage.children[1].url.String() != baseURL+"assets/image.png" {
+	//t.Logf("   Got: %q\n", homepage.children[1].url.String())
 	//t.Logf("Wanted: %q\n", baseURL+"assets/image.png")
 	//t.Error("link name is incorrect")
 	//}
-	//if homepage.Children[3].URL.String() != baseURL+"scripts/blah.js" {
-	//t.Logf("   Got: %q\n", homepage.Children[3].URL.String())
+	//if homepage.children[3].url.String() != baseURL+"scripts/blah.js" {
+	//t.Logf("   Got: %q\n", homepage.children[3].url.String())
 	//t.Logf("Wanted: %q\n", baseURL+"scripts/blah.js")
 	//t.Error("link name is incorrect")
 	//}
@@ -157,28 +157,28 @@ func TestSimpleMap(t *testing.T) {
 
 // TestHeaderFetching tests fetchFiletype() to see if we are getting expected results
 func TestHeaderFetching(t *testing.T) {
-	basepage, err := NewPage(nil, baseURL)
+	basepage, err := newHTTPItem(nil, baseURL)
 	if err != nil {
-		t.Error("problem creating New Page struct")
+		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(basepage); err != nil || basepage.MediaType != "text/html" {
+	if err := fetchFiletype(basepage); err != nil || basepage.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
-	page, err := NewPage(basepage, "about.html")
+	page, err := newHTTPItem(basepage, "about.html")
 	if err != nil {
-		t.Error("problem creating New Page struct")
+		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.MediaType != "text/html" {
+	if err := fetchFiletype(page); err != nil || page.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
-	page, err = NewPage(basepage, "assets/image.png")
+	page, err = newHTTPItem(basepage, "assets/image.png")
 	if err != nil {
-		t.Error("problem creating New Page struct")
+		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.MediaType != "image/png" {
-		t.Logf("got %q, wanted %q", page.MediaType, "image/png")
+	if err := fetchFiletype(page); err != nil || page.linkType != tAsset {
+		t.Logf("got %q, wanted %q", page.linkType, tAsset)
 		t.Error("problem fetching filetype")
 	}
 }
