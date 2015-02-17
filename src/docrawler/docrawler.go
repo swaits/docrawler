@@ -102,12 +102,7 @@ func crawlItem(item *httpItem, rchan chan<- *httpItem) {
 	}
 
 	// parse links
-	title, links := parseLinks(text) // TODO remove error from parseLinks, not needed
-	if err != nil {
-		item.linkType = tBroken
-		rchan <- item
-		return
-	}
+	title, links := parseLinks(text)
 	item.title = title
 
 	// walk links and add them as children to the current item
