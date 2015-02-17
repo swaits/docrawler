@@ -7,21 +7,25 @@ import (
 	"net/http"
 )
 
+// custom errors
 var (
 	errContentTypeNotFound = errors.New("no Content-Type header found")
-	errFetchError          = errors.New("couldn't fetch page")
+	errFetchError          = errors.New("couldn't fetch item")
+	errFileTypeUnknown     = errors.New("couldn't determine file type")
 )
 
 // fetchFiletype performs an http HEAD to get the media type, and sets it
-// directly in Page.MediaType
-func fetchFiletype(page *Page) error {
-	resp, err := http.Head(page.URL.String())
+// directly in httpItem.mediaType
+func fetchFiletype(item *httpItem) error {
+	resp, err := http.Head(item.url.String())
 	if err != nil {
+		item.linkType = tBroken
 		return err
 	}
 
 	// check response code
 	if resp.StatusCode != http.StatusOK {
+		item.linkType = tBroken
 		return errFetchError
 	}
 
@@ -29,35 +33,46 @@ func fetchFiletype(page *Page) error {
 	contentType, ok := resp.Header["Content-Type"]
 	if !ok {
 		// no Content-Type header found
+		item.linkType = tBroken
 		return errContentTypeNotFound
 	}
 
 	// parse mime type
 	mediatype, _, err := mime.ParseMediaType(contentType[0])
 	if err != nil {
+		item.linkType = tBroken
 		return err
 	}
 
-	// set and return
-	page.MediaType = mediatype
+	// success, set item type and return
+	if mediatype == "text/html" {
+		item.linkType = tHTMLPage
+	} else {
+		item.linkType = tAsset
+	}
 	return nil
 }
 
-// fetchPage takes a Page, GETs it, and returns the body as a string
-func fetchPage(page *Page) (string, error) {
+// fetchPage takes a httpItem, GETs it, and returns the body as a string
+func fetchPage(item *httpItem) (string, error) {
 	// figure out the file type
-	err := fetchFiletype(page)
+	err := fetchFiletype(item)
 	if err != nil {
 		return "", err
 	}
 
-	// we only want to fetch html
-	if page.MediaType != "text/html" {
+	// make sure we got a file type!
+	if item.linkType == tUnknown {
+		return "", errFileTypeUnknown
+	}
+
+	// we only want to fetch html, so return if it's anything else
+	if item.linkType != tHTMLPage {
 		return "", nil // but this isn't an error!
 	}
 
 	// GET the url
-	resp, err := http.Get(page.URL.String())
+	resp, err := http.Get(item.url.String())
 	if err != nil {
 		return "", err
 	}

@@ -2,90 +2,148 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"time"
 )
 
-// docrawl begins crawling the site at "url"
-func docrawl(url string) []*Page {
-	// our result structure
-	var sitemap []*Page
+// docrawl begins crawling the site at "homeurl"
+func doCrawl(homeurl string) itemSlice {
+	// set of what we have already crawled
+	crawled := make(itemMap)
 
-	// what we've already parsed, what we still need to parse
-	crawled := make(map[string]*Page)
-	queued := make(map[string]*Page)
+	// a set of crawled URLs which have been cleaned
+	// useful so that we don't crawl http://a.com/index.html#about if we've
+	// already crawled http://a.com/index.html, or vice versa
+	crawledStripped := make(itemMap)
 
-	// create first page and add to the queue
-	homepage, _ := NewPage(nil, url) // TODO check error
-	queued[homepage.URL.String()] = homepage
+	// map (of urlString -> httpItem) of our results
+	results := make(itemMap)
 
-	// main loop
-	for len(queued) > 0 {
-		// pop a page off of queued
-		var dest *Page
-		var destURL string
-		for destURL, dest = range queued {
-			break
-		}
-		delete(queued, destURL)
+	// a channel to receive our results on
+	rchan := make(chan *httpItem)
 
-		// mark this page as complete
-		crawled[dest.URL.String()] = dest
+	// start a ticker which we'll use to output status and check for completion
+	ticker := time.Tick(250 * time.Millisecond)
 
-		// add page to list
-		sitemap = append(sitemap, dest)
+	// create first page's httpItem
+	homeitem, err := newHTTPItem(nil, homeurl)
+	if err != nil {
+		log.Fatal("unable to create httpItem for homeurl")
+	}
 
-		// make sure this URL has the same hostname as our first page
-		if dest.URL.Host != homepage.URL.Host {
-			// skip URLs associated with other Hosts
-			dest.Skipped = true
-			continue
-		}
+	// set our number of outstanding pages (initially 1 to account for first page)
+	crawlingCount := 1
 
-		// fetch page
-		text, err := fetchPage(dest)
-		if err != nil {
-			dest.Broken = true
-			continue
-		}
+	// start the home page crawl
+	crawled[homeitem.url.String()] = homeitem
+	crawledStripped[stripURL(homeitem.url)] = homeitem
+	go crawlItem(homeitem, rchan)
 
-		// parse links
-		title, links, err := parseLinks(text)
-		if err != nil {
-			dest.Broken = true
-			continue
-		}
-		dest.Title = title
-		for _, l := range links {
-			p, err := NewPage(dest, l)
-			if err != nil {
-				continue // TODO check error
+	// wait for results
+	for {
+		select {
+		case r := <-rchan: // new results?
+			// add result to our results map
+			results[r.url.String()] = r
+
+			// decrease the outstanding page count by 1
+			crawlingCount--
+
+			// start crawly any new child pages we haven't yet crawled
+			for i, c := range r.children {
+				// see if we already have a result for this page
+				// if so, point to that result
+				if existing, ok := results[c.url.String()]; ok {
+					r.children[i] = existing
+					continue
+				}
+
+				// see if we're already crawling this page (but maybe don't have results yet)
+				// if so, point to that item (we will have it as a result later!)
+				if existing, ok := crawled[c.url.String()]; ok {
+					r.children[i] = existing
+					continue
+				}
+				if existing, ok := crawledStripped[stripURL(c.url)]; ok {
+					// we crawled a different version of this same page
+					// i.e. same page, different anchor. we don't need to crawl it again
+					// but we do need to keep it in our results, so copy the existing
+					// struct over for everything except the URLs
+					r.children[i].title = existing.title
+					r.children[i].linkType = existing.linkType
+					r.children[i].children = existing.children
+					continue
+				}
+
+				// haven't crawled this one yet, do so now
+				crawlingCount++
+				crawled[c.url.String()] = c
+				crawledStripped[stripURL(c.url)] = c
+				go crawlItem(c, rchan)
 			}
 
-			// see if we already know about this page
-			pCrawled, haveCrawled := crawled[p.URL.String()]
-			pQueued, haveQueued := queued[p.URL.String()]
-			if haveCrawled {
-				// add the previously crawled page to children
-				dest.Children = append(dest.Children, pCrawled)
-			} else if haveQueued {
-				// add the previously queued page to children
-				dest.Children = append(dest.Children, pQueued)
-			} else {
-				// add this new page (never seen) to children
-				dest.Children = append(dest.Children, p)
-				// .. and queue it up for crawling
-				queued[p.URL.String()] = p
+		case <-ticker: // our regular ticker. for status output and checking for completion.
+			// output status to console
+			log.Printf("Crawled %v links, have %v left.\n", len(results), crawlingCount)
+
+			// see if we're finished
+			if crawlingCount == 0 {
+				// finished! convert results map to a slice and return it
+				rslice := itemSlice{}
+				for _, v := range results {
+					rslice = append(rslice, v)
+				}
+				return rslice
 			}
 		}
 	}
+}
 
-	return sitemap
+// crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
+// and filling out its structure as much as possible
+func crawlItem(item *httpItem, rchan chan<- *httpItem) {
+	// make sure this item is the same domain (i.e. URL "host part") as its referrer
+	if item.refurl != nil && item.url.Host != item.refurl.Host {
+		// skip URLs associated with other Hosts
+		item.linkType = tRemote
+		rchan <- item
+		return
+	}
+
+	// fetch page
+	text, err := fetchPage(item)
+	if err != nil {
+		rchan <- item
+		return
+	}
+
+	// parse links
+	title, links := parseLinks(text) // TODO remove error from parseLinks, not needed
+	if err != nil {
+		item.linkType = tBroken
+		rchan <- item
+		return
+	}
+	item.title = title
+
+	// walk links and add them as children to the current item
+	for _, l := range links {
+		newItem, err := newHTTPItem(item, l)
+		if err != nil {
+			continue // TODO bad item
+		}
+		item.children = append(item.children, newItem)
+	}
+
+	// send back our item struct now that it's all filled out
+	rchan <- item
 }
 
 func main() {
 	// crawl each URL on the command line
 	for _, u := range os.Args[1:] {
-		pages := docrawl(u)
+		pages := doCrawl(u)
 		l := sitemapToLocations(pages)
 		j, _ := locationsToJSON(l)
 		fmt.Println(j)

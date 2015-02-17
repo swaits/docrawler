@@ -11,7 +11,7 @@ var reTitle = regexp.MustCompile(`(?i)<\s*title\s*>([^<]*)<\s*\/\s*title`)
 
 // parseLinks takes a string and attempts to parse any html title and all links out of it,
 // and returns a slice of the captures found
-func parseLinks(s string) (string, []string, error) {
+func parseLinks(s string) (string, []string) {
 	// find the title, or default to empty
 	title := ""
 	titleMatches := reTitle.FindStringSubmatch(s)
@@ -25,5 +25,5 @@ func parseLinks(s string) (string, []string, error) {
 	for _, match := range reURL.FindAllStringSubmatch(s, -1) {
 		results = append(results, match[2])
 	}
-	return title, results, nil
+	return title, results
 }
