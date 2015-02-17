@@ -54,7 +54,7 @@ func fetchFiletype(item *httpItem) error {
 }
 
 // fetchPage takes a httpItem, GETs it, and returns the body as a string
-func fetchPage(item *httpItem) (string, error) {
+func fetchItem(item *httpItem) (string, error) {
 	// figure out the file type
 	err := fetchFiletype(item)
 	if err != nil {
@@ -91,4 +91,34 @@ func fetchPage(item *httpItem) (string, error) {
 	// success! close the body, return it as a string
 	resp.Body.Close()
 	return string(body), nil
+}
+
+// crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
+// and filling out its structure as much as possible
+func crawlItem(item *httpItem) {
+	// make sure this item is the same domain (i.e. URL "host part") as its referrer
+	if item.refurl != nil && item.url.Host != item.refurl.Host {
+		// skip URLs associated with other Hosts
+		item.linkType = tRemote
+		return
+	}
+
+	// fetch page
+	text, err := fetchItem(item)
+	if err != nil {
+		return
+	}
+
+	// parse links
+	title, links := parseLinks(text)
+	item.title = title
+
+	// walk links and add them as children to the current item
+	for _, l := range links {
+		newItem, err := newHTTPItem(item, l)
+		if err != nil {
+			continue // TODO bad item
+		}
+		item.children = append(item.children, newItem)
+	}
 }
