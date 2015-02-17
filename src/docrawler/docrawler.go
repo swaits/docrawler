@@ -102,7 +102,7 @@ func crawlItem(item *httpItem, rchan chan<- *httpItem) {
 	}
 
 	// parse links
-	title, links, _ := parseLinks(text) // TODO remove error from parseLinks, not needed
+	title, links := parseLinks(text) // TODO remove error from parseLinks, not needed
 	if err != nil {
 		item.linkType = tBroken
 		rchan <- item
