@@ -10,7 +10,7 @@ import (
 // docrawl begins crawling the site at "homeurl"
 func docrawl(homeurl string) itemSlice {
 	// set of what we have already crawled
-	crawled := make(map[string]struct{})
+	crawled := make(itemMap)
 
 	// map (of urlString -> httpItem) of our results
 	results := make(itemMap)
@@ -31,7 +31,7 @@ func docrawl(homeurl string) itemSlice {
 	crawlingCount := 1
 
 	// start the home page crawl
-	crawled[homeitem.url.String()] = struct{}{}
+	crawled[homeitem.url.String()] = homeitem
 	go crawlItem(homeitem, rchan)
 
 	// wait for results
@@ -46,19 +46,24 @@ func docrawl(homeurl string) itemSlice {
 
 			// start crawly any new child pages we haven't yet crawled
 			for i, c := range r.children {
-				// see if we already have a result for this page, if so, point to that result
+				// see if we already have a result for this page
+				// if so, point to that result
 				if existing, ok := results[c.url.String()]; ok {
 					r.children[i] = existing
 					continue
 				}
 
 				// see if we're already crawling this page (but maybe don't have results yet)
-				if _, ok := crawled[c.url.String()]; !ok {
-					// haven't crawled this one yet, do so now
-					crawlingCount++
-					crawled[c.url.String()] = struct{}{}
-					go crawlItem(c, rchan)
+				// if so, point to that item (we will have it as a result later!)
+				if existing, ok := crawled[c.url.String()]; ok {
+					r.children[i] = existing
+					continue
 				}
+
+				// haven't crawled this one yet, do so now
+				crawlingCount++
+				crawled[c.url.String()] = c
+				go crawlItem(c, rchan)
 			}
 
 		case <-ticker: // our regular ticker. for status output and checking for completion.

@@ -49,3 +49,12 @@ func resolveURL(referringURL string, currentURL string) (*url.URL, error) {
 	// return the URL we ended up with, and the error from checkURL
 	return uResolved, checkURL(uResolved)
 }
+
+func stripAnchorFromURL(u *url.URL) string {
+	// copy the url locally
+	ucopy := *u
+
+	// blank out the anchor, return URI string
+	ucopy.Fragment = ""
+	return ucopy.String()
+}
