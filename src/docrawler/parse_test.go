@@ -16,10 +16,7 @@ func TestSimpleParse(t *testing.T) {
 		<script href="scripts/blah.js"/>
 	</body>
 </html>`
-	title, matches, err := parseLinks(doc)
-	if err != nil {
-		t.Error(err)
-	}
+	title, matches := parseLinks(doc)
 	if title != "Test Page" {
 		t.Error("got wrong title")
 	}
