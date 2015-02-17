@@ -6,7 +6,7 @@ import (
 
 // TestFailedHeaderFetching tests fetchFiletype() to see if we are getting expected failures
 func TestFailedHeaderFetching(t *testing.T) {
-	page, err := NewPage(nil, "http://doesntexist23492387492837492374982734.com/")
+	page, err := newHTTPItem(nil, "http://doesntexist23492387492837492374982734.com/")
 	if err != nil {
 		t.Error("problem creating New Page struct")
 	}
@@ -17,7 +17,7 @@ func TestFailedHeaderFetching(t *testing.T) {
 
 // TestFailedFetching tests fetchFiletype() to see if we are getting expected failures
 func TestFailedFetching(t *testing.T) {
-	page, err := NewPage(nil, "http://doesntexist23492387492837492374982734.com/")
+	page, err := newHTTPItem(nil, "http://doesntexist23492387492837492374982734.com/")
 	if err != nil {
 		t.Error("problem creating New Page struct")
 	}

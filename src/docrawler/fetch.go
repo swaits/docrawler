@@ -13,9 +13,9 @@ var (
 )
 
 // fetchFiletype performs an http HEAD to get the media type, and sets it
-// directly in Page.MediaType
-func fetchFiletype(page *Page) error {
-	resp, err := http.Head(page.URL.String())
+// directly in httpItem.mediaType
+func fetchFiletype(page *httpItem) error {
+	resp, err := http.Head(page.url.String())
 	if err != nil {
 		return err
 	}
@@ -39,12 +39,12 @@ func fetchFiletype(page *Page) error {
 	}
 
 	// set and return
-	page.MediaType = mediatype
+	page.mediaType = mediatype
 	return nil
 }
 
-// fetchPage takes a Page, GETs it, and returns the body as a string
-func fetchPage(page *Page) (string, error) {
+// fetchPage takes a httpItem, GETs it, and returns the body as a string
+func fetchPage(page *httpItem) (string, error) {
 	// figure out the file type
 	err := fetchFiletype(page)
 	if err != nil {
@@ -52,12 +52,12 @@ func fetchPage(page *Page) (string, error) {
 	}
 
 	// we only want to fetch html
-	if page.MediaType != "text/html" {
+	if page.mediaType != "text/html" {
 		return "", nil // but this isn't an error!
 	}
 
 	// GET the url
-	resp, err := http.Get(page.URL.String())
+	resp, err := http.Get(page.url.String())
 	if err != nil {
 		return "", err
 	}

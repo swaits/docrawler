@@ -4,22 +4,22 @@ import (
 	"net/url"
 )
 
-// Page is a struct which defines a single page, which URLs (links and assets) it contains, etc.
-type Page struct {
-	URL       *url.URL
-	Title     string
-	MediaType string
-	Skipped   bool
-	Broken    bool
-	Children  []*Page
+// httpItem is a struct which defines a single page, which URLs (links and assets) it contains, etc.
+type httpItem struct {
+	url       *url.URL
+	title     string
+	mediaType string
+	skipped   bool
+	broken    bool
+	children  []*httpItem
 }
 
-// NewPage takes a referring Page + a URL and returns a new &Page{}
-func NewPage(referrer *Page, rawurl string) (*Page, error) {
+// newHTTPItem takes a referring httpItem + a URL and returns a new &httpItem{}
+func newHTTPItem(referrer *httpItem, rawurl string) (*httpItem, error) {
 	// determine the base URL so we can resulve this into a full URL
 	baseURL := ""
 	if referrer != nil {
-		baseURL = referrer.URL.String()
+		baseURL = referrer.url.String()
 	}
 
 	// resolve URL into a full absolute URL (non-relative)
@@ -29,5 +29,5 @@ func NewPage(referrer *Page, rawurl string) (*Page, error) {
 	}
 
 	// create struct and return
-	return &Page{URL: u, Skipped: false, Broken: false}, nil
+	return &httpItem{url: u, skipped: false, broken: false}, nil
 }
