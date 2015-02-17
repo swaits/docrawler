@@ -9,16 +9,13 @@ import (
 
 // docrawl begins crawling the site at "homeurl"
 func doCrawl(homeurl string) itemSlice {
-	// set of what we have already crawled
+	// set of what we have already crawled, our results
 	crawled := make(itemMap)
 
 	// a set of crawled URLs which have been cleaned
 	// useful so that we don't crawl http://a.com/index.html#about if we've
 	// already crawled http://a.com/index.html, or vice versa
 	crawledStripped := make(itemMap)
-
-	// map (of urlString -> httpItem) of our results
-	results := make(itemMap)
 
 	// a channel to receive our results on
 	rchan := make(chan *httpItem)
@@ -45,7 +42,7 @@ func doCrawl(homeurl string) itemSlice {
 		select {
 		case r := <-rchan: // new results?
 			// add result to our results map
-			results[r.url.String()] = r
+			crawled[r.url.String()] = r
 
 			// decrease the outstanding page count by 1
 			crawlingCount--
@@ -54,7 +51,7 @@ func doCrawl(homeurl string) itemSlice {
 			for i, c := range r.children {
 				// see if we already have a result for this page
 				// if so, point to that result
-				if existing, ok := results[c.url.String()]; ok {
+				if existing, ok := crawled[c.url.String()]; ok {
 					r.children[i] = existing
 					continue
 				}
@@ -85,13 +82,13 @@ func doCrawl(homeurl string) itemSlice {
 
 		case <-ticker: // our regular ticker. for status output and checking for completion.
 			// output status to console
-			log.Printf("Crawled %v links, have %v left.\n", len(results), crawlingCount)
+			log.Printf("Crawled %v links, have %v left.\n", len(crawled), crawlingCount)
 
 			// see if we're finished
 			if crawlingCount == 0 {
 				// finished! convert results map to a slice and return it
 				rslice := itemSlice{}
-				for _, v := range results {
+				for _, v := range crawled {
 					rslice = append(rslice, v)
 				}
 				return rslice
