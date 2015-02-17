@@ -68,3 +68,14 @@ func TestBadResolve(t* testing.T) {
 	}
 }
 */
+
+func TestURLStripAnchor(t *testing.T) {
+	u, err := url.Parse("http://swaits:pass@somehost.com:8765/blah/blah.html?x=y#foo")
+	if err != nil {
+		t.Fatal("couldn't parse a URL")
+	}
+	stripped := stripAnchorFromURL(u)
+	if stripped != "http://swaits:pass@somehost.com:8765/blah/blah.html?x=y" {
+		t.Error("stripping anchor #foo from URL failed")
+	}
+}

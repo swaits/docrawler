@@ -44,7 +44,11 @@ func sitemapToLocations(pages []*Page) []*Location {
 				}
 			}
 
-			// now sort the children slices
+			// now uniq & sort the children slices
+			l.Remote = uniqStrings(l.Remote)
+			l.Links = uniqStrings(l.Links)
+			l.Broken = uniqStrings(l.Broken)
+			l.Assets = uniqStrings(l.Assets)
 			sort.Strings(l.Remote)
 			sort.Strings(l.Links)
 			sort.Strings(l.Broken)

@@ -13,6 +13,7 @@
 * helper function to do the whole crawl process
 * document code better
   * test with godoc
+* omit fields in json when nil? (Broken, etc.)
 
 ## Features
 

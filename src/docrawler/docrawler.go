@@ -16,7 +16,7 @@ func docrawl(url string) []*Page {
 
 	// create first page and add to the queue
 	homepage, _ := NewPage(nil, url) // TODO check error
-	queued[homepage.URL.String()] = homepage
+	queued[homepage.Identifier] = homepage
 
 	// main loop
 	for len(queued) > 0 {
@@ -29,7 +29,7 @@ func docrawl(url string) []*Page {
 		delete(queued, destURL)
 
 		// mark this page as complete
-		crawled[dest.URL.String()] = dest
+		crawled[dest.Identifier] = dest
 
 		// add page to list
 		sitemap = append(sitemap, dest)
@@ -62,8 +62,8 @@ func docrawl(url string) []*Page {
 			}
 
 			// see if we already know about this page
-			pCrawled, haveCrawled := crawled[p.URL.String()]
-			pQueued, haveQueued := queued[p.URL.String()]
+			pCrawled, haveCrawled := crawled[p.Identifier]
+			pQueued, haveQueued := queued[p.Identifier]
 			if haveCrawled {
 				// add the previously crawled page to children
 				dest.Children = append(dest.Children, pCrawled)
@@ -74,7 +74,7 @@ func docrawl(url string) []*Page {
 				// add this new page (never seen) to children
 				dest.Children = append(dest.Children, p)
 				// .. and queue it up for crawling
-				queued[p.URL.String()] = p
+				queued[p.Identifier] = p
 			}
 		}
 	}

@@ -6,12 +6,13 @@ import (
 
 // Page is a struct which defines a single page, which URLs (links and assets) it contains, etc.
 type Page struct {
-	URL       *url.URL
-	Title     string
-	MediaType string
-	Skipped   bool
-	Broken    bool
-	Children  []*Page
+	URL        *url.URL
+	Identifier string
+	Title      string
+	MediaType  string
+	Skipped    bool
+	Broken     bool
+	Children   []*Page
 }
 
 // NewPage takes a referring Page + a URL and returns a new &Page{}
@@ -29,5 +30,6 @@ func NewPage(referrer *Page, rawurl string) (*Page, error) {
 	}
 
 	// create struct and return
-	return &Page{URL: u, Skipped: false, Broken: false}, nil
+	p := &Page{URL: u, Skipped: false, Broken: false, Identifier: stripAnchorFromURL(u)}
+	return p, nil
 }
