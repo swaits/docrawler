@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// docrawl begins crawling the site at "homeurl"
+// doCrawl begins crawling the site at "homeurl"
 func doCrawl(homeurl string) itemSlice {
 	// set of what we have already crawled, our results
 	crawled := make(itemMap)
@@ -17,8 +17,14 @@ func doCrawl(homeurl string) itemSlice {
 	// already crawled http://a.com/index.html, or vice versa
 	crawledStripped := make(itemMap)
 
-	// a channel to receive our results on
-	rchan := make(chan *httpItem)
+	// channels to send work to and receive our results on
+	rxchan := make(chan *httpItem)
+	txchan := make(chan *httpItem)
+
+	// spin up our crawler workers
+	for i := 0; i < 10; i++ {
+		go crawlListner(txchan, rxchan)
+	}
 
 	// start a ticker which we'll use to output status and check for completion
 	ticker := time.Tick(250 * time.Millisecond)
@@ -35,12 +41,12 @@ func doCrawl(homeurl string) itemSlice {
 	// start the home page crawl
 	crawled[homeitem.url.String()] = homeitem
 	crawledStripped[stripURL(homeitem.url)] = homeitem
-	go crawlItem(homeitem, rchan)
+	txchan <- homeitem
 
 	// wait for results
 	for {
 		select {
-		case r := <-rchan: // new results?
+		case r := <-rxchan: // new results?
 			// add result to our results map
 			crawled[r.url.String()] = r
 
@@ -77,7 +83,9 @@ func doCrawl(homeurl string) itemSlice {
 				crawlingCount++
 				crawled[c.url.String()] = c
 				crawledStripped[stripURL(c.url)] = c
-				go crawlItem(c, rchan)
+				go func(newItem *httpItem) {
+					txchan <- newItem
+				}(c)
 			}
 
 		case <-ticker: // our regular ticker. for status output and checking for completion.
@@ -86,6 +94,10 @@ func doCrawl(homeurl string) itemSlice {
 
 			// see if we're finished
 			if crawlingCount == 0 {
+				// close our channels, signalling any workers to exit
+				close(txchan)
+				close(rxchan)
+
 				// finished! convert results map to a slice and return it
 				rslice := itemSlice{}
 				for _, v := range crawled {
@@ -97,31 +109,40 @@ func doCrawl(homeurl string) itemSlice {
 	}
 }
 
+// crawlListner is a for+select wrapper around crawlItem that listens
+// for new jobs and sends them off to crawlItem
+func crawlListner(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
+	for {
+		select {
+		case newJob, ok := <-txchan:
+			if !ok {
+				// channel closed, finish
+				return
+			}
+			// perform the crawl
+			rxchan <- crawlItem(newJob)
+		}
+	}
+}
+
 // crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
 // and filling out its structure as much as possible
-func crawlItem(item *httpItem, rchan chan<- *httpItem) {
+func crawlItem(item *httpItem) *httpItem {
 	// make sure this item is the same domain (i.e. URL "host part") as its referrer
 	if item.refurl != nil && item.url.Host != item.refurl.Host {
 		// skip URLs associated with other Hosts
 		item.linkType = tRemote
-		rchan <- item
-		return
+		return item
 	}
 
 	// fetch page
 	text, err := fetchPage(item)
 	if err != nil {
-		rchan <- item
-		return
+		return item
 	}
 
 	// parse links
-	title, links := parseLinks(text) // TODO remove error from parseLinks, not needed
-	if err != nil {
-		item.linkType = tBroken
-		rchan <- item
-		return
-	}
+	title, links := parseLinks(text)
 	item.title = title
 
 	// walk links and add them as children to the current item
@@ -134,7 +155,7 @@ func crawlItem(item *httpItem, rchan chan<- *httpItem) {
 	}
 
 	// send back our item struct now that it's all filled out
-	rchan <- item
+	return item
 }
 
 func main() {
