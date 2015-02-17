@@ -229,7 +229,38 @@ func TestJsonOutput(t *testing.T) {
 	// this is a cheater test because the output is from a run of the code being
 	// test itself. but, it's been examined and I think it's right. and, there's not
 	// many other ways to test this without some significant pain
-	cheaterTest := `[{"URL":"http://localhost:8765/","Title":"Home","Links":["http://localhost:8765/about.html"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":["http://localhost:8765/zzzbroken.html"],"Remote":null},{"URL":"http://localhost:8765/about.html","Title":"About Test","Links":["http://localhost:8765/"],"Assets":["http://localhost:8765/assets/image.png","http://localhost:8765/scripts/blah.js"],"Broken":null,"Remote":["http://doesntexist23492387492837492374982734.com/"]}]`
+	cheaterTest := `[
+  {
+    "URL": "http://localhost:8765/",
+    "Title": "Home",
+    "Links": [
+      "http://localhost:8765/about.html"
+    ],
+    "Assets": [
+      "http://localhost:8765/assets/image.png",
+      "http://localhost:8765/scripts/blah.js"
+    ],
+    "Broken": [
+      "http://localhost:8765/zzzbroken.html"
+    ],
+    "Remote": null
+  },
+  {
+    "URL": "http://localhost:8765/about.html",
+    "Title": "About Test",
+    "Links": [
+      "http://localhost:8765/"
+    ],
+    "Assets": [
+      "http://localhost:8765/assets/image.png",
+      "http://localhost:8765/scripts/blah.js"
+    ],
+    "Broken": null,
+    "Remote": [
+      "http://doesntexist23492387492837492374982734.com/"
+    ]
+  }
+]`
 	j, err := locationsToJSON(l)
 	if err != nil {
 		t.Error("locationsToJSON failed")
