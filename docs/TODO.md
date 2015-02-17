@@ -5,7 +5,6 @@
 * deal with anchor issue (repeatedly crawling index.html#about, index.html#contact, etc.)
   * should only crawl these pages once
   * but should be included in the links part
-* when sorting links, "uniq" them as well
 * be smart about index.html?
 
 ## Cleanup
