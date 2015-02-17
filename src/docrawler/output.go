@@ -15,32 +15,41 @@ type Location struct {
 	Remote []string
 }
 
-func sitemapToLocations(pages []*Page) []*Location {
+// implement Location slice sorting (by URL)
+type byURL []*Location
+
+// implement Sort interface on byURL (which is a []*Location)
+func (l byURL) Len() int           { return len(l) }
+func (l byURL) Less(i, j int) bool { return l[i].URL < l[j].URL }
+func (l byURL) Swap(i, j int)      { l[i], l[j] = l[j], l[i] }
+
+// sitemapToLocations converts an itemSlice to []*Location, which is appropriate for marshalling
+func sitemapToLocations(pages itemSlice) []*Location {
 	// build a map of our pages
-	pageMap := make(map[string]*Page)
+	pageMap := make(map[string]*httpItem)
 	for _, p := range pages {
-		pageMap[p.URL.String()] = p
+		pageMap[p.url.String()] = p
 	}
 
 	// build a slice of locations (one per page)
 	var locations []*Location
 	for _, p := range pages {
-		if p.MediaType == "text/html" {
+		if p.linkType == tHTMLPage {
 			// create a location for this page
-			l := &Location{URL: p.URL.String(), Title: p.Title}
+			l := &Location{URL: p.url.String(), Title: p.title}
 
 			// add its children
-			for _, c := range p.Children {
+			for _, c := range p.children {
 				// look up this child's media type from the root list of pages
-				//mediaType := pageMap[c.URL.String()].MediaType
-				if c.Skipped {
-					l.Remote = append(l.Remote, c.URL.String())
-				} else if c.MediaType == "text/html" {
-					l.Links = append(l.Links, c.URL.String())
-				} else if c.Broken {
-					l.Broken = append(l.Broken, c.URL.String())
+				//mediaType := pageMap[c.url.String()].mediaType
+				if c.linkType == tRemote {
+					l.Remote = append(l.Remote, c.url.String())
+				} else if c.linkType == tHTMLPage {
+					l.Links = append(l.Links, c.url.String())
+				} else if c.linkType == tBroken {
+					l.Broken = append(l.Broken, c.url.String())
 				} else {
-					l.Assets = append(l.Assets, c.URL.String())
+					l.Assets = append(l.Assets, c.url.String())
 				}
 			}
 
@@ -55,6 +64,8 @@ func sitemapToLocations(pages []*Page) []*Location {
 		}
 	}
 
+	// sort the Locations themselves and return
+	sort.Sort(byURL(locations))
 	return locations
 }
 
