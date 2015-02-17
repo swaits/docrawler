@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -8,7 +9,7 @@ import (
 )
 
 // doCrawl begins crawling the site at "homeurl"
-func doCrawl(homeurl string) itemSlice {
+func doCrawl(homeurl string, nWorkers int) itemSlice {
 	// set of what we have already crawled, our results
 	crawled := make(itemMap)
 
@@ -22,8 +23,8 @@ func doCrawl(homeurl string) itemSlice {
 	txchan := make(chan *httpItem)
 
 	// spin up our crawler workers
-	for i := 0; i < 10; i++ {
-		go crawlListner(txchan, rxchan)
+	for i := 0; i < nWorkers; i++ {
+		go crawlWorker(txchan, rxchan)
 	}
 
 	// start a ticker which we'll use to output status and check for completion
@@ -109,65 +110,36 @@ func doCrawl(homeurl string) itemSlice {
 	}
 }
 
-// crawlListner is a for+select wrapper around crawlItem that listens
-// for new jobs and sends them off to crawlItem
-func crawlListner(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
-	for {
-		select {
-		case newJob, ok := <-txchan:
-			if !ok {
-				// channel closed, finish
-				return
-			}
-			// perform the crawl
-			rxchan <- crawlItem(newJob)
-		}
+// crawlWorker is a goroutine'ized wrapper around crawlItem that listens
+// for new jobs and sends them off to crawlItem, returning the results in rxchan
+func crawlWorker(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
+	// read off the incoming item channel forever
+	for newJob := range txchan {
+		// perform the crawl
+		crawlItem(newJob)
+		// return the result
+		rxchan <- newJob
 	}
 }
 
-// crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
-// and filling out its structure as much as possible
-func crawlItem(item *httpItem) *httpItem {
-	// make sure this item is the same domain (i.e. URL "host part") as its referrer
-	if item.refurl != nil && item.url.Host != item.refurl.Host {
-		// skip URLs associated with other Hosts
-		item.linkType = tRemote
-		return item
-	}
-
-	// fetch page
-	text, err := fetchPage(item)
-	if err != nil {
-		return item
-	}
-
-	// parse links
-	title, links := parseLinks(text)
-	item.title = title
-
-	// walk links and add them as children to the current item
-	for _, l := range links {
-		newItem, err := newHTTPItem(item, l)
-		if err != nil {
-			continue // TODO bad item
-		}
-		item.children = append(item.children, newItem)
-	}
-
-	// send back our item struct now that it's all filled out
-	return item
-}
-
+// main is our program's entry point
 func main() {
+	// parse our flags
+	nWorkers := *(flag.Uint("num", 100, "number of workers"))
 	// see if we've got no arguments
-	if len(os.Args) == 1 {
+	flag.Parse()
+	if flag.NArg() < 1 {
+		fmt.Printf("\nerror: Please specify at least one URL to crawl.\n")
 		fmt.Printf("\nD.O. Crawler 1.0  Copyright (c) 2015 Stephen Waits <steve@waits.net>  2015-02-17\n\n")
-		fmt.Printf("usage: %v <URLs...>\n\n", os.Args[0])
+		fmt.Printf("usage: %v [-num=100] <URLs...>\n\n", os.Args[0])
+		fmt.Printf("  -num=100: number of workers\n")
+		fmt.Printf("  URLs:     URLs to crawl\n\n")
 		os.Exit(1)
 	}
+
 	// crawl each URL on the command line
-	for _, u := range os.Args[1:] {
-		pages := doCrawl(u)
+	for _, u := range flag.Args() {
+		pages := doCrawl(u, int(nWorkers))
 		if pages == nil {
 			log.Fatalf("unable to crawl %q, may be an invalid URL\n", u)
 		}
