@@ -51,14 +51,26 @@ func resolveURL(referringURL string, currentURL string) (*url.URL, error) {
 	return uResolved, checkURL(uResolved)
 }
 
-// stripAnchorFromURL returns a version of the URL with out the "Fragment" part,
+// stripURL returns a version of the URL without the "Fragment" part,
 // which is anything after the '#' character, so:
 // http://a.com/blah.html#anchor becomes http://a.com/blah.html
-func stripAnchorFromURL(u *url.URL) string {
+// ... and without files like "index.htm" in the Path (since that's
+// equivalent to "/"
+func stripURL(u *url.URL) string {
 	// copy the url locally
 	ucopy := *u
 
 	// blank out the anchor, return URI string
 	ucopy.Fragment = ""
+
+	// remove index.html if it exists
+	suffixes := []string{"index.html", "index.htm"}
+	for _, s := range suffixes {
+		if strings.HasSuffix(strings.ToLower(ucopy.Path), s) {
+			ucopy.Path = ucopy.Path[0 : len(ucopy.Path)-len(s)]
+		}
+	}
+
+	// return new stripped down URL string
 	return ucopy.String()
 }

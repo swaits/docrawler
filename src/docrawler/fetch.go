@@ -74,13 +74,11 @@ func fetchPage(item *httpItem) (string, error) {
 	// GET the url
 	resp, err := http.Get(item.url.String())
 	if err != nil {
-		// NOTE http.Head was already successful, this is highly likely to succeed
 		return "", err
 	}
 
 	// check response code
 	if resp.StatusCode != http.StatusOK {
-		// NOTE we already got StatusOK for http.Head, this is highly likely to succeed
 		return "", errFetchError
 	}
 
