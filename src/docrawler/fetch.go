@@ -16,7 +16,7 @@ var (
 
 // fetchFiletype performs an http HEAD to get the media type, and sets it
 // directly in httpItem.mediaType
-func fetchFiletype(item *httpItem) error {
+func (item *httpItem) fetchFiletype() error {
 	resp, err := http.Head(item.url.String())
 	if err != nil {
 		item.linkType = tBroken
@@ -54,9 +54,9 @@ func fetchFiletype(item *httpItem) error {
 }
 
 // fetchPage takes a httpItem, GETs it, and returns the body as a string
-func fetchItem(item *httpItem) (string, error) {
+func (item *httpItem) fetchItem() (string, error) {
 	// figure out the file type
-	err := fetchFiletype(item)
+	err := item.fetchFiletype()
 	if err != nil {
 		return "", err
 	}
@@ -95,7 +95,7 @@ func fetchItem(item *httpItem) (string, error) {
 
 // crawlItem crawls a single httpItem, fetching the header, hte page, parsing it,
 // and filling out its structure as much as possible
-func crawlItem(item *httpItem) {
+func (item *httpItem) crawlItem() {
 	// make sure this item is the same domain (i.e. URL "host part") as its referrer
 	if item.refurl != nil && item.url.Host != item.refurl.Host {
 		// skip URLs associated with other Hosts
@@ -104,7 +104,7 @@ func crawlItem(item *httpItem) {
 	}
 
 	// fetch page
-	text, err := fetchItem(item)
+	text, err := item.fetchItem()
 	if err != nil {
 		return
 	}

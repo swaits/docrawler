@@ -116,7 +116,7 @@ func crawlWorker(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
 	// read off the incoming item channel forever
 	for newJob := range txchan {
 		// perform the crawl
-		crawlItem(newJob)
+		newJob.crawlItem()
 		// return the result
 		rxchan <- newJob
 	}
