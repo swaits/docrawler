@@ -62,7 +62,7 @@ func TestSimpleFetch(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	body, err := fetchItem(page)
+	body, err := page.fetchItem()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(basepage); err != nil || basepage.linkType != tHTMLPage {
+	if err := basepage.fetchFiletype(); err != nil || basepage.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
@@ -169,7 +169,7 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.linkType != tHTMLPage {
+	if err := page.fetchFiletype(); err != nil || page.linkType != tHTMLPage {
 		t.Error("problem fetching filetype")
 	}
 
@@ -177,7 +177,7 @@ func TestHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New httpItem struct")
 	}
-	if err := fetchFiletype(page); err != nil || page.linkType != tAsset {
+	if err := page.fetchFiletype(); err != nil || page.linkType != tAsset {
 		t.Logf("got %q, wanted %q", page.linkType, tAsset)
 		t.Error("problem fetching filetype")
 	}

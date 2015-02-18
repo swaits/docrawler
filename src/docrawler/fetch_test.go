@@ -10,7 +10,7 @@ func TestFailedHeaderFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New Page struct")
 	}
-	if err := fetchFiletype(page); err == nil {
+	if err := page.fetchFiletype(); err == nil {
 		t.Error("tired fetching bogus page but didn't get nil back from fetchFiletype")
 	}
 }
@@ -21,7 +21,7 @@ func TestFailedFetching(t *testing.T) {
 	if err != nil {
 		t.Error("problem creating New Page struct")
 	}
-	if _, err := fetchItem(page); err == nil {
+	if _, err := page.fetchItem(); err == nil {
 		t.Error("tired fetching bogus page but didn't get nil back from fetchPage")
 	}
 }
