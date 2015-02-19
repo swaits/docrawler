@@ -124,13 +124,13 @@ func crawlWorker(txchan <-chan *httpItem, rxchan chan<- *httpItem) {
 
 // main is our program's entry point
 func main() {
+	fmt.Printf("\nD.O. Crawler 1.0  Copyright (c) 2015 Stephen Waits <steve@waits.net>  2015-02-17\n\n")
 	// parse our flags
 	nWorkers := *(flag.Uint("num", 100, "number of workers"))
 	// see if we've got no arguments
 	flag.Parse()
 	if flag.NArg() < 1 {
-		fmt.Printf("\nerror: Please specify at least one URL to crawl.\n")
-		fmt.Printf("\nD.O. Crawler 1.0  Copyright (c) 2015 Stephen Waits <steve@waits.net>  2015-02-17\n\n")
+		fmt.Printf("error: Please specify at least one URL to crawl.\n\n")
 		fmt.Printf("usage: %v [-num=100] <URLs...>\n\n", os.Args[0])
 		fmt.Printf("  -num=100: number of workers\n")
 		fmt.Printf("  URLs:     URLs to crawl\n\n")
