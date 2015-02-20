@@ -3,7 +3,7 @@
 # derived from: http://zduck.com/2014/go-project-structure-and-dependencies/
 
 # build targets (which aren't files)
-.PHONY: build fmt lint vet test autotest cover doc run clean env stats vendor
+.PHONY: build fmt lint vet test autotest cover doc run clean env sh zsh stats vendor
 
 # configuration
 APPNAME := docrawler
@@ -41,7 +41,9 @@ autotest:
 		xargs -n1 -I{} ${SHELL} -c 'echo ; date ; echo ----------------------------; go test ./src/... | ./util/testfilter.sh'
 
 cover:
-	go test -coverprofile cover.out ./src/...  && go tool cover -html cover.out
+	mkdir -p tmp
+	go test -coverprofile tmp/cover.out ./src/...
+	go tool cover -html tmp/cover.out
 
 doc:
 	godoc -http=:6060 -index
@@ -54,6 +56,12 @@ clean:
 
 env:
 	go env
+
+sh:
+	sh
+
+zsh:
+	zsh
 
 stats:
 	@echo ===============================================================================
