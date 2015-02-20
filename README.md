@@ -6,7 +6,7 @@ It crawls a single host (i.e. anything.com) and outputs a site map in JSON forma
 
 For each page crawled, it distinguishes between links to other pages, links to assets, broken links, and remote links (i.e. someotherhost.com).
 
-### An Example
+### Example Usage and Output
 
     ❯ bin/docrawler https://goregex.com/
     
@@ -56,14 +56,16 @@ For each page crawled, it distinguishes between links to other pages, links to a
 * The main crawler loop is in `docrawler.go:docrawl()`.
 * From there I maintain a hash of links we've already crawled.
 * Each link gets an `httpItem{}` struct instanced, which holds its crawl state.
-* A number of crawler goroutines are fired off in the beginning so that we can control precisely how many http fetches happen at a single time. This number is configurable from via command line parameter.
+* A number of crawler goroutines are fired off in the beginning so that we can control precisely how many http fetches happen at a single time. This number is configurable via command line parameter.
 * These goroutines listen for `*httpItem{}` on one channel, crawl it, fill out its results, and send it back to `docrawl()` on another channel.
 * `docrawl()` is predominantly a for-select loop, selecting on a ticker (which is used to update status to the console and check for crawl completion), and on the "work finished" channel that the crawlers send data back on.
 
 ## How do I get set up? ##
 
-After cloning this repository, run:
+Clone this repository, fetch the dependencies, and build:
 
+    hg clone https://bitbucket.org/swaits/docrawler/
+    cd docrawler
     make vendor && make
 
 This will `fmt`, `lint`, `vet`, and `build` the source into an executable at `bin/docrawler`.
@@ -76,11 +78,11 @@ If you'd like to automatically run tests any time a file is changed:
 
     make autotest
 
-To see stats about the code, install cloc (`brew install cloc` on OS X) and then:
+To see stats about the code, install `cloc` (with `brew install cloc` on OS X) and then:
 
     make stats
 
-To look at the test coverage reports in your browser:
+To view at the test coverage reports in your browser:
 
     make cover
 
@@ -94,6 +96,7 @@ To deploy, just copy the executable `bin/docrawler` to a destination of your cho
 * It's portable.
 * It lets me package the app in a way that's trivially easy for anyone to build.
 * It makes it so I can easily vendor third-party packages outside of the main `./src` tree.
+* Everyone is vendoring their own way in Go. I'm not in love with any particular style. But this is simple enough for this case.
 
 ## Who do I talk to? ##
 
